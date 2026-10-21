@@ -2,9 +2,10 @@
 <html lang="th">
   <head>
     <meta charset="UTF-8" />
+    <!-- 📱 เปิดให้รองรับการซูมบนมือถือ (user-scalable=yes) -->
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover"
     />
     <title>CPE Exhibition - แนะนำเกี่ยวกับวิศวะคอมพิวเตอร์</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -70,7 +71,7 @@
     </style>
   </head>
   <body
-    class="font-sans antialiased text-slate-800 min-h-screen relative bg-white overflow-x-hidden flex flex-col justify-between select-none pb-20 sm:pb-6"
+    class="font-sans antialiased text-slate-800 min-h-screen relative bg-white overflow-x-hidden flex flex-col justify-between pb-20 sm:pb-6"
   >
     <!-- 🌴 พื้นหลังสไตล์ Vice City Palm Silhouette ไล่โทนสีส้มสดใสไปขาว -->
     <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden select-none">
@@ -223,25 +224,33 @@
         </h1>
       </div>
 
-      <!-- 🖼️ กรอบสี่เหลี่ยมใส่รูปโบรชัวร์ (เลื่อนอ่านได้) -->
+      <!-- 🖼️ กรอบสี่เหลี่ยมใส่รูปโบรชัวร์ (เลื่อนอ่านได้ + แตะขยายซูม) -->
       <div class="w-full bg-white/95 backdrop-blur-xl border-2 border-orange-400 rounded-3xl p-3 sm:p-4 shadow-lg relative overflow-hidden">
         <div class="flex items-center justify-between border-b border-orange-100 pb-2 mb-2.5">
           <div class="flex items-center gap-2">
             <span class="text-lg sm:text-xl">🖼️</span>
-            <h2 class="text-xs sm:text-sm font-black text-slate-800">โบรชัวร์แนะนำสาขาวิชา (Brochure)</h2>
+            <h2 class="text-xs sm:text-sm font-black text-slate-800">โบรชัวร์แนะนำสาขาวิชา</h2>
           </div>
-          <span class="text-[10px] sm:text-xs font-bold text-orange-600 bg-orange-100 px-2.5 py-0.5 rounded-full shadow-sm">
-            ↕ เลื่อนดูโบรชัวร์
-          </span>
+          <button
+            onclick="openImageModal()"
+            class="text-[10px] sm:text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 px-3 py-1 rounded-full shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+          >
+            <span>🔍</span> แตะดูภาพขยาย/ซูม
+          </button>
         </div>
 
         <!-- พื้นที่แสดงรูปภาพโบรชัวร์แบบเลื่อน Scroll -->
-        <div class="max-h-[380px] sm:max-h-[450px] overflow-y-auto no-scrollbar rounded-2xl border border-slate-200/80 shadow-inner bg-slate-50">
+        <div class="max-h-[380px] sm:max-h-[450px] overflow-y-auto no-scrollbar rounded-2xl border border-slate-200/80 shadow-inner bg-slate-50 relative group cursor-pointer" onclick="openImageModal()">
           <img
+            id="brochure-preview-img"
             src="สไลด์1.JPG"
+            onerror="this.onerror=null; if(this.src.includes('สไลด์1.JPG')){ this.src='Moudeng.jpg'; } else { this.src='image/Moudeng.jpg'; }"
             alt="โบรชัวร์แนะนำสาขาวิชาวิศวกรรมคอมพิวเตอร์"
             class="w-full h-auto block rounded-2xl"
           />
+          <div class="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+            <span class="bg-white/90 text-orange-600 font-bold text-xs px-3 py-1.5 rounded-full shadow-lg border border-orange-200">🔍 คลิกเพื่อซูมขยาย</span>
+          </div>
         </div>
       </div>
 
@@ -251,7 +260,7 @@
         <div class="grid grid-cols-2 gap-2">
           <button
             onclick="document.getElementById('menu-modal').classList.remove('hidden')"
-            class="w-full min-h-[46px] bg-white/95 backdrop-blur-md text-orange-600 border-2 border-orange-400 py-2.5 px-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1 hover:bg-orange-50 active:scale-95 transition-all shadow-sm"
+            class="w-full min-h-[46px] bg-white/95 backdrop-blur-md text-orange-600 border-2 border-orange-400 py-2.5 px-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1 hover:bg-orange-50 active:scale-95 transition-all shadow-sm cursor-pointer"
           >
             <span>💡 คำแนะนำสาขา</span>
           </button>
@@ -288,10 +297,72 @@
 
     </div>
 
+    <!-- 🔍 MODAL LIGHTBOX สำหรับซูมรูปโบรชัวร์ขนาดใหญ่ -->
+    <div
+      id="image-modal"
+      class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex flex-col justify-between p-2 sm:p-4 transition-opacity"
+    >
+      <!-- แถบเครื่องมือซูมด้านบน -->
+      <div class="flex items-center justify-between z-10 bg-slate-900/90 px-3.5 py-2.5 rounded-2xl border border-white/20 shadow-xl max-w-xl mx-auto w-full">
+        <span class="text-white text-xs sm:text-sm font-bold flex items-center gap-1.5">
+          <span>🔍</span> โบรชัวร์สาขา
+        </span>
+
+        <!-- ปุ่มควบคุมการซูม -->
+        <div class="flex items-center gap-1.5">
+          <button
+            onclick="zoomBrochure(1.25)"
+            title="ขยาย"
+            class="w-8 h-8 rounded-full bg-white/20 hover:bg-orange-500 text-white font-black flex items-center justify-center text-lg active:scale-95 transition"
+          >
+            +
+          </button>
+          <button
+            onclick="zoomBrochure(0.8)"
+            title="ย่อ"
+            class="w-8 h-8 rounded-full bg-white/20 hover:bg-orange-500 text-white font-black flex items-center justify-center text-lg active:scale-95 transition"
+          >
+            -
+          </button>
+          <button
+            onclick="resetBrochureZoom()"
+            class="px-2.5 py-1 rounded-full bg-white/20 hover:bg-orange-500 text-white text-[10px] sm:text-xs font-bold active:scale-95 transition"
+          >
+            รีเซ็ต
+          </button>
+          <button
+            onclick="closeImageModal()"
+            class="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold text-xl flex items-center justify-center shadow-lg active:scale-95 transition ml-1 cursor-pointer"
+          >
+            &times;
+          </button>
+        </div>
+      </div>
+
+      <!-- พื้นที่รูปภาพซูมขยาย เลื่อนนิ้วดูได้ง่าย -->
+      <div
+        id="modal-img-wrapper"
+        class="flex-1 overflow-auto flex items-start justify-center p-2 my-2 no-scrollbar"
+      >
+        <img
+          id="modal-brochure-img"
+          src="สไลด์1.JPG"
+          onerror="this.onerror=null; if(this.src.includes('สไลด์1.JPG')){ this.src='Moudeng.jpg'; } else { this.src='image/Moudeng.jpg'; }"
+          alt="โบรชัวร์ขนาดใหญ่"
+          class="max-w-full h-auto block rounded-xl shadow-2xl transition-transform duration-200 origin-top"
+          style="transform: scale(1);"
+        />
+      </div>
+
+      <div class="text-center text-slate-300 text-[10px] sm:text-xs pb-1 font-medium">
+        💡 สามารถกดปุ่ม + / - หรือใช้นิ้วหนีบถ่างขยายหน้าจอเพื่อซูมดูข้อความได้ชัดเจน
+      </div>
+    </div>
+
     <!-- 🔘 ปุ่มลอยเลือกดูเว็บเพจมหาลัย & ติดต่อเรา (ลอยมุมขวาล่าง) -->
     <button
       onclick="openContactModal()"
-      class="fixed bottom-4 right-3.5 sm:bottom-5 sm:right-5 z-40 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-full shadow-[0_8px_20px_rgba(245,158,11,0.5)] border-2 border-white/90 flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all"
+      class="fixed bottom-4 right-3.5 sm:bottom-5 sm:right-5 z-40 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-full shadow-[0_8px_20px_rgba(245,158,11,0.5)] border-2 border-white/90 flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all cursor-pointer"
       aria-label="ช่องทางการติดต่อ"
     >
       <span class="text-lg sm:text-xl animate-bounce">🌐</span>
@@ -495,6 +566,40 @@
 
     <!-- Scripts -->
     <script>
+      // 🔍 ระบบซูมภาพโบรชัวร์ขนาดใหญ่สำหรับมือถือ
+      let brochureScale = 1;
+
+      function openImageModal() {
+        const previewImg = document.getElementById("brochure-preview-img");
+        const modalImg = document.getElementById("modal-brochure-img");
+        if (previewImg && modalImg) {
+          modalImg.src = previewImg.src;
+        }
+        resetBrochureZoom();
+        document.getElementById("image-modal").classList.remove("hidden");
+      }
+
+      function closeImageModal() {
+        document.getElementById("image-modal").classList.add("hidden");
+      }
+
+      function zoomBrochure(factor) {
+        brochureScale = Math.min(Math.max(0.6, brochureScale * factor), 3.5);
+        applyBrochureZoom();
+      }
+
+      function resetBrochureZoom() {
+        brochureScale = 1;
+        applyBrochureZoom();
+      }
+
+      function applyBrochureZoom() {
+        const img = document.getElementById("modal-brochure-img");
+        if (img) {
+          img.style.transform = `scale(${brochureScale})`;
+        }
+      }
+
       function openContactModal() {
         document.getElementById("contact-modal").classList.remove("hidden");
       }
