@@ -1,0 +1,2328 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffedd5" />
+    <title>แบบทดสอบวัดระดับวิศวะคอมฯ — Open House Football Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* 🌟 ปรับพื้นหลังใหม่เป็นเฉดสีส้ม-อุ่น นุ่มนวล สมัยใหม่ */
+      body {
+        background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 40%, #fef3c7 100%);
+        background-attachment: fixed;
+        color: #1e293b;
+        font-family: "Noto Sans Thai", "Leelawadee UI", sans-serif;
+      }
+      .page {
+        background: transparent;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      .choice-btn {
+        transition: all 0.2s ease;
+      }
+      .choice-btn:hover {
+        transform: translateY(-2px);
+      }
+      .selected-choice {
+        background-color: #fff7ed !important;
+        border-color: #ea580c !important;
+        border-width: 2px !important;
+        color: #c2410c !important;
+        box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.15);
+      }
+      .correct-anim {
+        background-color: #d1fae5 !important;
+        border-color: #059669 !important;
+        color: #065f46 !important;
+      }
+      .wrong-anim {
+        background-color: #fee2e2 !important;
+        border-color: #dc2626 !important;
+        color: #991b1b !important;
+      }
+
+      .pitch-bg {
+        background: radial-gradient(
+          circle,
+          #16a34a 0%,
+          #15803d 60%,
+          #14532d 100%
+        );
+        position: relative;
+        overflow: hidden;
+        box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.6);
+      }
+      .pitch-lines {
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      }
+
+      .goal-net-mesh {
+        background-image: radial-gradient(
+          rgba(255, 255, 255, 0.35) 1px,
+          transparent 1px
+        );
+        background-size: 8px 8px;
+      }
+
+      @keyframes arenaShake {
+        0%,
+        100% {
+          transform: translate(0, 0);
+        }
+        20% {
+          transform: translate(-6px, 4px);
+        }
+        40% {
+          transform: translate(6px, -4px);
+        }
+        60% {
+          transform: translate(-4px, -2px);
+        }
+        80% {
+          transform: translate(4px, 2px);
+        }
+      }
+      .anim-arena-shake {
+        animation: arenaShake 0.4s ease-in-out;
+      }
+
+      @keyframes netBulge {
+        0% {
+          transform: scale(1) translateY(0);
+        }
+        35% {
+          transform: scale(1.08, 1.18) translateY(-10px);
+          background-color: rgba(245, 158, 11, 0.4);
+          box-shadow: 0 0 40px #f59e0b;
+        }
+        100% {
+          transform: scale(1) translateY(0);
+        }
+      }
+      .anim-net-bulge {
+        animation: netBulge 0.5s ease-out;
+      }
+
+      @keyframes kickerRunKick {
+        0% {
+          transform: translate(0, 0) rotate(0deg) scale(1);
+        }
+        25% {
+          transform: translate(15px, -15px) rotate(-22deg) scale(0.95);
+        }
+        55% {
+          transform: translate(42px, -4px) rotate(28deg) scale(1.22);
+        }
+        80% {
+          transform: translate(35px, 0) rotate(0deg) scale(1.1);
+        }
+        100% {
+          transform: translate(35px, 0) rotate(0deg) scale(1);
+        }
+      }
+      .anim-kicker-kick {
+        animation: kickerRunKick 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+          forwards;
+      }
+
+      @keyframes keeperDiveRight {
+        0% {
+          transform: translate(0, 0) rotate(0deg) scale(1);
+        }
+        100% {
+          transform: translate(75px, 14px) rotate(55deg) scale(1.15);
+          opacity: 0.85;
+        }
+      }
+      .anim-keeper-dive-right {
+        animation: keeperDiveRight 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      }
+
+      @keyframes keeperDiveLeft {
+        0% {
+          transform: translate(0, 0) rotate(0deg) scale(1);
+        }
+        100% {
+          transform: translate(-75px, 14px) rotate(-55deg) scale(1.15);
+          opacity: 0.85;
+        }
+      }
+      .anim-keeper-dive-left {
+        animation: keeperDiveLeft 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      }
+
+      @keyframes ballGoalLeft {
+        0% {
+          transform: translate(0, 0) scale(1) rotate(0deg);
+          opacity: 1;
+        }
+        30% {
+          transform: translate(35px, -50px) scale(0.85) rotate(280deg);
+        }
+        70% {
+          transform: translate(-72px, -138px) scale(0.52) rotate(720deg);
+        }
+        100% {
+          transform: translate(-70px, -132px) scale(0.5) rotate(880deg);
+        }
+      }
+      .anim-ball-goal-left {
+        animation: ballGoalLeft 0.75s cubic-bezier(0.18, 0.89, 0.32, 1.15)
+          forwards;
+        filter: drop-shadow(0 12px 10px rgba(0, 0, 0, 0.5));
+      }
+
+      @keyframes ballGoalRight {
+        0% {
+          transform: translate(0, 0) scale(1) rotate(0deg);
+          opacity: 1;
+        }
+        30% {
+          transform: translate(-35px, -50px) scale(0.85) rotate(-280deg);
+        }
+        70% {
+          transform: translate(72px, -138px) scale(0.52) rotate(-720deg);
+        }
+        100% {
+          transform: translate(70px, -132px) scale(0.5) rotate(-880deg);
+        }
+      }
+      .anim-ball-goal-right {
+        animation: ballGoalRight 0.75s cubic-bezier(0.18, 0.89, 0.32, 1.15)
+          forwards;
+        filter: drop-shadow(0 12px 10px rgba(0, 0, 0, 0.5));
+      }
+
+      @keyframes ballMissRight {
+        0% {
+          transform: translate(0, 0) scale(1) rotate(0deg);
+          opacity: 1;
+        }
+        30% {
+          transform: translate(-30px, -70px) scale(0.8) rotate(300deg);
+        }
+        70% {
+          transform: translate(120px, -170px) scale(0.5) rotate(700deg);
+          opacity: 0.8;
+        }
+        100% {
+          transform: translate(190px, -220px) scale(0.2) rotate(1080deg);
+          opacity: 0;
+        }
+      }
+      .anim-ball-miss-right {
+        animation: ballMissRight 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+          forwards;
+      }
+
+      @keyframes ballMissLeft {
+        0% {
+          transform: translate(0, 0) scale(1) rotate(0deg);
+          opacity: 1;
+        }
+        30% {
+          transform: translate(30px, -70px) scale(0.8) rotate(-300deg);
+        }
+        70% {
+          transform: translate(-120px, -170px) scale(0.5) rotate(-700deg);
+          opacity: 0.8;
+        }
+        100% {
+          transform: translate(-190px, -220px) scale(0.2) rotate(-1080deg);
+          opacity: 0;
+        }
+      }
+      .anim-ball-miss-left {
+        animation: ballMissLeft 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+          forwards;
+      }
+
+      @keyframes popIn {
+        0% {
+          transform: scale(0.5);
+          opacity: 0;
+        }
+        80% {
+          transform: scale(1.05);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .animate-pop-in {
+        animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      }
+      .gold-glow {
+        box-shadow: 0 0 25px rgba(245, 158, 11, 0.6);
+      }
+    </style>
+
+    <!-- Firebase SDK (ES Module) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        getDocs,
+        query,
+        orderBy,
+        limit,
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDxRlfiL80TUoeyQDk93PQ5A0W3e37PoSI",
+        authDomain: "elon-musk-c6fa9.firebaseapp.com",
+        projectId: "elon-musk-c6fa9",
+        storageBucket: "elon-musk-c6fa9.firebasestorage.app",
+        messagingSenderId: "609890115150",
+        appId: "1:609890115150:web:428937710422523698ed1f",
+        measurementId: "G-WTHXDEWJMR",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      window.saveToLeaderboard = async function (newScore, stats = {}) {
+        try {
+          const docRef = await addDoc(collection(db, "leaderboard"), {
+            name: window.playerName || "ผู้เยี่ยมชม",
+            school: window.playerSchool || "ไม่ระบุสังกัด",
+            score: newScore,
+            correctTotal: stats.correctTotal || 0,
+            easyCorrect: stats.easyCorrect || 0,
+            mediumCorrect: stats.mediumCorrect || 0,
+            hardCorrect: stats.hardCorrect || 0,
+            date: new Date().toLocaleDateString("th-TH"),
+            createdAt: new Date(),
+          });
+
+          const q = query(
+            collection(db, "leaderboard"),
+            orderBy("score", "desc"),
+            limit(200),
+          );
+          const snapshot = await getDocs(q);
+          let myRank = 1;
+          let rankCounter = 1;
+          snapshot.forEach((doc) => {
+            if (doc.id === docRef.id) {
+              myRank = rankCounter;
+            }
+            rankCounter++;
+          });
+
+          return myRank;
+        } catch (e) {
+          console.error("Firebase save error:", e);
+          return 1;
+        }
+      };
+
+      window.renderLeaderboard = async function () {
+        const tbody = document.getElementById("leaderboard-body");
+        if (!tbody) return;
+        tbody.innerHTML =
+          '<tr><td colspan="4" class="p-4 text-center text-slate-500">กำลังโหลดข้อมูลคะแนนล่าสุด...</td></tr>';
+
+        try {
+          const q = query(
+            collection(db, "leaderboard"),
+            orderBy("score", "desc"),
+            limit(5),
+          );
+          const snapshot = await getDocs(q);
+          tbody.innerHTML = "";
+
+          if (snapshot.empty) {
+            tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">ยังไม่มีสถิติคะแนน</td></tr>`;
+            return;
+          }
+
+          let index = 0;
+          snapshot.forEach((doc) => {
+            const item = doc.data();
+            const tr = document.createElement("tr");
+            const isCurrentPlayer =
+              item.name === window.playerName && item.score === window.score;
+            tr.className = isCurrentPlayer
+              ? "bg-orange-100 font-bold"
+              : "hover:bg-slate-50";
+
+            let rankIcon = index + 1;
+            if (index === 0) rankIcon = "🥇";
+            if (index === 1) rankIcon = "🥈";
+            if (index === 2) rankIcon = "🥉";
+
+            tr.innerHTML = `
+                        <td class="p-2.5 text-center font-bold">${rankIcon}</td>
+                        <td class="p-2.5">${item.name}</td>
+                        <td class="p-2.5 text-slate-500 truncate max-w-[120px]">${item.school}</td>
+                        <td class="p-2.5 text-right font-bold text-orange-600">${item.score}</td>
+                    `;
+            tbody.appendChild(tr);
+            index++;
+          });
+        } catch (e) {
+          console.error("Firebase fetch error:", e);
+          tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">เกิดข้อผิดพลาดในการโหลดคะแนน</td></tr>`;
+        }
+      };
+    </script>
+  </head>
+  <body class="min-h-screen">
+    <main class="page min-h-screen px-4 py-8 sm:px-8 sm:py-12">
+      <article class="mx-auto max-w-2xl">
+        <!-- Nav Header -->
+        <nav
+          class="mb-6 flex items-center justify-between border-b border-orange-200/60 pb-3 text-xs font-medium tracking-wide text-slate-600"
+        >
+          <a
+            href="index.html"
+            class="flex items-center gap-1 font-bold text-slate-800 hover:text-orange-600 transition-colors"
+          >
+            ← กลับหน้าหลัก
+          </a>
+          <span id="nav-status">⚽ Penalty Challenge (10 ข้อสุ่ม)</span>
+        </nav>
+
+        <!-- ================= SCREEN 1: START ================= -->
+        <div id="start-screen" class="space-y-6">
+          <header>
+            <p
+              class="mb-2 text-xs font-bold tracking-widest text-orange-600 uppercase"
+            >
+              Interactive Football Minigame
+            </p>
+            <h1
+              class="text-3xl sm:text-5xl font-black leading-tight tracking-tight text-slate-900 drop-shadow-sm"
+            >
+              ดวลจุดโทษวิศวะคอมฯ ⚽
+            </h1>
+            <p class="mt-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+              ดวลทักษะคอมฯ ฮาๆ ปั่นๆ
+              <strong>สุ่ม 10 ข้อ</strong>
+            </p>
+          </header>
+
+          <div
+            class="border border-orange-200/80 bg-white/90 backdrop-blur-md p-5 rounded-2xl shadow-sm space-y-4"
+          >
+            <div class="flex items-center gap-3 border-b border-orange-100 pb-3">
+              <div
+                class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-lg"
+              >
+                👤
+              </div>
+              <div>
+                <div class="text-xs text-slate-500">ผู้เล่นปัจจุบัน</div>
+                <div
+                  id="player-display-name"
+                  class="font-bold text-base text-slate-800"
+                >
+                  กำลังตรวจสอบผู้ใช้งาน...
+                </div>
+              </div>
+            </div>
+            <div class="text-xs text-slate-600 space-y-2">
+              <p class="text-orange-600 font-bold">
+                🎯
+                <strong
+                  >โครงสร้างคำถามและเวลาตอบ :</strong
+                >
+              </p>
+              <div
+                class="grid grid-cols-1 sm:grid-cols-3 gap-2 my-2 text-slate-700"
+              >
+                <div
+                  class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg"
+                >
+                  <span class="font-bold text-emerald-800"
+                    >🟢 ข้อ 1 - 5 (ง่าย)</span
+                  >
+                  <p class="text-[11px] mt-0.5">
+                    มุกฮากวนๆ ( 1 ข้อ / 15 วิ)
+                  </p>
+                </div>
+                <div
+                  class="p-2.5 bg-amber-50 border border-amber-200 rounded-lg"
+                >
+                  <span class="font-bold text-amber-800"
+                    >🟡 ข้อ 6 - 9 (ปานกลาง)</span
+                  >
+                  <p class="text-[11px] mt-0.5">
+                    ไอทีทั่วไป ( 1 ข้อ / 17 วิ)
+                  </p>
+                </div>
+                <div
+                  class="p-2.5 bg-purple-50 border border-purple-200 rounded-lg"
+                >
+                  <span class="font-bold text-purple-800">🔴 ข้อ 10 (ยาก)</span>
+                  <p class="text-[11px] mt-0.5">
+                    สายคอมฯ ตัวจริง ( 1 ข้อ / 30 วิ)
+                  </p>
+                </div>
+              </div>
+              <p>
+                ⏱️ <strong>การคิดคะแนน:</strong> ตอบถูกติดกันสะสม Combo
+                รับโบนัสคะแนนเพิ่ม!
+              </p>
+              <p
+                class="text-amber-700 font-bold bg-amber-50 p-2 rounded-lg border border-amber-200 mt-1"
+              >
+                ✨ <strong>Golden Time Bonus:</strong> ตอบผิดติดต่อกัน 2
+                ข้อขึ้นไป ข้อถัดไปจะเพิ่มเวลาให้อีก +50%!
+              </p>
+            </div>
+          </div>
+
+          <!-- ข้อความเตือนเมื่อทำข้อสอบไปแล้ว -->
+          <div
+            id="already-played-msg"
+            class="hidden p-4 bg-amber-50 border-2 border-amber-400 rounded-xl text-amber-900 text-xs sm:text-sm font-bold text-center"
+          >
+            🔒 คุณได้ลงแข่งดวลจุดโทษไปแล้ว (จำกัดสิทธิ์ 1 ครั้งต่อคน)
+            สามารถตรวจสอบอันดับได้ที่กระดานคะแนน
+          </div>
+
+          <!-- ปุ่มควบคุม -->
+          <div class="flex flex-col sm:flex-row gap-2.5">
+            <button
+              id="start-btn"
+              onclick="startQuizDirectly()"
+              class="flex-1 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-3.5 px-5 transition-all shadow-md active:scale-95 text-center"
+            >
+              🚀 เริ่มเล่นเกมดวลจุดโทษ (10 ข้อสุ่ม)
+            </button>
+            <button
+              onclick="showLeaderboardOnly()"
+              class="rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-bold py-3.5 px-4 transition-all active:scale-95 text-center text-sm shadow-sm"
+            >
+              🏆 กระดานคะแนน
+            </button>
+            <button
+              onclick="openAdminAccess()"
+              class="rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-bold py-3.5 px-3.5 transition-all active:scale-95 text-center text-sm shadow-sm"
+            >
+              ⚙️ ผู้ดูแล
+            </button>
+            <a
+              href="index.html"
+              class="rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-bold py-3.5 px-4 transition-all active:scale-95 text-center text-sm flex items-center justify-center gap-1 shadow-sm"
+            >
+              ← ย้อนกลับ
+            </a>
+          </div>
+        </div>
+
+        <!-- ================= SCREEN 2: GAMEPLAY (MINIGAME ARENA) ================= -->
+        <div id="quiz-screen" class="hidden space-y-4">
+          <!-- Status Bar -->
+          <div
+            class="flex items-center justify-between bg-white/90 backdrop-blur border border-orange-200/80 p-3 rounded-xl text-xs font-bold shadow-sm"
+          >
+            <div class="flex items-center gap-2">
+              <span class="text-slate-500">ข้อที่</span>
+              <span
+                id="current-question-num"
+                class="text-orange-600 text-base font-black"
+                >1</span
+              >/10
+            </div>
+            <div
+              id="role-badge"
+              class="px-3 py-1 rounded-full text-xs font-black bg-emerald-600 text-white shadow-sm"
+            >
+              🟢 EASY
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span
+                id="golden-badge"
+                class="hidden bg-amber-400 text-slate-900 font-bold px-2 py-0.5 rounded-full text-[10px] animate-pulse shadow-sm"
+              >
+                ✨ Golden Time
+              </span>
+              <span
+                id="combo-badge"
+                class="hidden bg-amber-500 text-white px-2 py-0.5 rounded-full text-[10px] animate-bounce"
+              >
+                🔥 Combo x1
+              </span>
+              <div>
+                คะแนน:
+                <span
+                  id="current-score"
+                  class="text-base text-orange-600 font-black"
+                  >0</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Timer Bar -->
+          <div
+            class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden shadow-inner"
+          >
+            <div
+              id="timer-bar"
+              class="bg-orange-500 h-full transition-all duration-100 ease-linear"
+              style="width: 100%"
+            ></div>
+          </div>
+
+          <!-- ⚽ FOOTBALL ARENA CANVAS / VISUAL BOX -->
+          <div
+            id="arena-container"
+            class="pitch-bg h-52 sm:h-60 rounded-2xl border-4 border-slate-900 shadow-2xl flex flex-col justify-between p-3.5 relative"
+          >
+            <!-- Lines -->
+            <div
+              class="absolute inset-2 pitch-lines rounded-xl pointer-events-none opacity-40"
+            ></div>
+
+            <!-- Goal Area (Top) -->
+            <div class="relative w-full flex justify-center z-10">
+              <div
+                id="goal-posts"
+                class="w-48 sm:w-56 h-20 border-t-[10px] border-x-[10px] border-white goal-net-mesh bg-white/10 rounded-t-lg relative flex items-center justify-center transition-all overflow-hidden"
+              >
+                <div
+                  id="arena-keeper"
+                  class="text-4xl sm:text-5xl transition-all duration-300 drop-shadow-[0_8px_6px_rgba(0,0,0,0.4)]"
+                >
+                  🧍‍♂️
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Result Overlay Text Banner -->
+            <div
+              id="action-overlay"
+              class="absolute inset-0 flex items-center justify-center z-30 pointer-events-none hidden"
+            >
+              <span
+                id="action-text"
+                class="text-3xl sm:text-5xl font-black drop-shadow-[0_6px_12px_rgba(0,0,0,0.9)] stroke-black tracking-wider text-center px-2"
+              >
+                SIUUUUUUU!
+              </span>
+            </div>
+
+            <!-- Ball Area (Bottom Center) -->
+            <div
+              class="relative w-full flex justify-center items-end pb-1 z-10"
+            >
+              <div
+                id="arena-ball"
+                class="text-4xl sm:text-5xl transition-all drop-shadow-[0_10px_8px_rgba(0,0,0,0.5)]"
+              >
+                ⚽
+              </div>
+            </div>
+
+            <!-- Kicker Character -->
+            <div
+              id="arena-kicker"
+              class="absolute bottom-2 left-3 sm:left-6 z-20 transition-transform flex items-center justify-center"
+            >
+              <img
+                src="Ronaldo.jpg"
+                class="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-emerald-400 object-cover shadow-md"
+                alt="Ronaldo Ready"
+              />
+            </div>
+          </div>
+
+          <!-- Question Box -->
+          <div
+            class="bg-white/90 backdrop-blur border-2 border-slate-800 p-4 sm:p-5 rounded-2xl shadow-sm"
+          >
+            <span
+              id="question-category"
+              class="inline-block bg-slate-800 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full mb-2"
+              >CATEGORY</span
+            >
+            <h2
+              id="question-text"
+              class="text-base sm:text-lg font-bold leading-snug text-slate-800"
+            >
+              คำถามจะแสดงตรงนี้...
+            </h2>
+          </div>
+
+          <!-- Choices Grid -->
+          <div id="choices-container" class="grid grid-cols-1 gap-2.5">
+            <!-- Choices injected by JS -->
+          </div>
+
+          <!-- 🎯 Confirm Answer Button -->
+          <button
+            id="confirm-answer-btn"
+            onclick="confirmAnswer()"
+            disabled
+            class="w-full mt-2 rounded-xl bg-slate-300 text-slate-500 font-bold py-3.5 px-6 transition-all text-center text-sm sm:text-base cursor-not-allowed"
+          >
+            🎯 เลือกคำตอบเพื่อยืนยัน
+          </button>
+        </div>
+
+        <!-- ================= SCREEN 3: RESULT & LEADERBOARD ================= -->
+        <div id="result-screen" class="hidden space-y-6">
+          <header class="text-center space-y-2">
+            <span
+              id="rank-badge"
+              class="inline-block bg-orange-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-sm"
+              >N/A</span
+            >
+            <h2 class="text-3xl font-black text-slate-800">สรุปผลการแข่งขัน</h2>
+            <p id="rank-description" class="text-sm font-bold text-orange-600">
+              "ยังไม่มีผลการทดสอบ"
+            </p>
+          </header>
+
+          <div
+            class="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-5 rounded-2xl shadow-lg text-center space-y-3"
+          >
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-amber-100"
+            >
+              🏆 ผลการแข่งขันของคุณ
+            </div>
+            <div
+              class="flex justify-around items-center pt-1 border-b border-white/20 pb-3"
+            >
+              <div>
+                <div class="text-[11px] text-amber-100">อันดับของคุณ</div>
+                <div
+                  id="user-rank-display"
+                  class="text-2xl sm:text-3xl font-black"
+                >
+                  ยังไม่ได้ทดสอบ
+                </div>
+              </div>
+              <div class="border-r border-white/30 h-10"></div>
+              <div>
+                <div class="text-[11px] text-amber-100">คะแนนรวม</div>
+                <div
+                  id="user-score-display"
+                  class="text-2xl sm:text-3xl font-black"
+                >
+                  0
+                </div>
+              </div>
+            </div>
+            <div class="pt-1">
+              <div class="text-xs text-amber-100 mb-0.5">
+                🎉 ของรางวัลที่คุณได้รับ:
+              </div>
+              <div
+                id="user-reward-display"
+                class="text-base sm:text-lg font-black text-white bg-white/20 py-1.5 px-4 rounded-full inline-block backdrop-blur-sm border border-white/30"
+              >
+                -
+              </div>
+            </div>
+          </div>
+
+          <!-- Score Details -->
+          <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="bg-white/90 backdrop-blur border border-orange-200/80 p-3 rounded-xl shadow-sm">
+              <div class="text-[10px] text-slate-500 font-bold">คะแนนรวม</div>
+              <div id="final-score" class="text-2xl font-black text-orange-600">
+                0
+              </div>
+            </div>
+            <div class="bg-white/90 backdrop-blur border border-orange-200/80 p-3 rounded-xl shadow-sm">
+              <div class="text-[10px] text-slate-500 font-bold">ทำสำเร็จ</div>
+              <div
+                id="final-correct"
+                class="text-2xl font-black text-emerald-600"
+              >
+                0/10
+              </div>
+            </div>
+            <div class="bg-white/90 backdrop-blur border border-orange-200/80 p-3 rounded-xl shadow-sm">
+              <div class="text-[10px] text-slate-500 font-bold">Max Combo</div>
+              <div
+                id="final-max-combo"
+                class="text-2xl font-black text-amber-500"
+              >
+                0x
+              </div>
+            </div>
+          </div>
+
+          <!-- Leaderboard Section -->
+          <div class="border-t-2 border-orange-200/80 pt-4">
+            <h3
+              class="text-base font-bold mb-3 flex items-center justify-between text-slate-800"
+            >
+              <span>🏆 กระดานคะแนนสูงสุด (Top 5)</span>
+              <span class="text-xs font-normal text-slate-500"
+                >Real-time Cloud Sync</span
+              >
+            </h3>
+            <div
+              class="bg-white/90 backdrop-blur border border-orange-200/80 rounded-2xl overflow-hidden shadow-sm"
+            >
+              <table class="w-full text-left text-xs sm:text-sm">
+                <thead
+                  class="bg-orange-100/70 text-slate-800 font-bold border-b border-orange-200/60"
+                >
+                  <tr>
+                    <th class="p-2.5 text-center w-12">อันดับ</th>
+                    <th class="p-2.5">ชื่อ-นามสกุล</th>
+                    <th class="p-2.5">สังกัด</th>
+                    <th class="p-2.5 text-right">คะแนน</th>
+                  </tr>
+                </thead>
+                <tbody id="leaderboard-body" class="divide-y divide-orange-100/60">
+                  <!-- Rows injected by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ปุ่มย้อนกลับ -->
+          <div class="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              onclick="backToStartScreen()"
+              class="flex-1 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-3 px-6 transition-all shadow-md text-center text-sm"
+            >
+              ← กลับหน้าเริ่มเกม
+            </button>
+            <a
+              href="index.html"
+              class="rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-bold py-3 px-6 transition-all text-center text-sm flex items-center justify-center text-slate-800 shadow-sm"
+            >
+              🏠 กลับหน้าหลัก
+            </a>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <footer
+          class="mt-10 flex items-center justify-between border-t border-orange-200/60 pt-6 text-xs text-slate-500"
+        >
+          <p>Computer Engineering Open House</p>
+        </footer>
+      </article>
+    </main>
+
+    <!-- MODAL ป๊อปอัปแจ้งเตือนเปลี่ยนระดับความยาก -->
+    <div
+      id="transition-modal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm hidden"
+    >
+      <div
+        id="transition-card"
+        class="bg-white border-4 border-orange-500 p-6 sm:p-8 rounded-2xl text-center shadow-2xl relative overflow-hidden max-w-sm w-full animate-pop-in"
+      >
+        <!-- 🖼️ รูปภาพ/GIF ฉากหลังโปร่งแสงรางๆ -->
+        <div
+          id="transition-gif-bg"
+          class="absolute inset-0 bg-cover bg-center opacity-30 pointer-events-none hidden"
+          style="background-image: url(&quot;action.gif&quot;)"
+        ></div>
+
+        <div class="relative z-10 space-y-4">
+          <div class="text-4xl sm:text-5xl animate-bounce">⚡</div>
+          <span
+            id="transition-level-badge"
+            class="inline-block bg-orange-500 text-white text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm"
+          >
+            แจ้งเตือน
+          </span>
+          <h3
+            id="transition-title"
+            class="text-xl sm:text-2xl font-black text-slate-800 leading-snug drop-shadow-sm"
+          >
+            คำถามหยั่งเชิง ว่าคุณคือวิศวะคอมหรือไม่
+          </h3>
+          <button
+            onclick="closeTransitionModal()"
+            class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all text-sm"
+          >
+            ลุยคำถามต่อไป! 🚀
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL ป๊อปอัปฉลองชัยชนะ -->
+    <div
+      id="victory-modal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm hidden"
+    >
+      <div
+        class="bg-white border-4 border-amber-400 p-6 sm:p-8 rounded-2xl text-center space-y-4 max-w-sm w-full animate-pop-in gold-glow relative"
+      >
+        <img
+          src="suuuuu.jpg"
+          class="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-amber-400 object-cover mx-auto shadow-2xl animate-bounce"
+          alt="SIUUU Victory"
+        />
+        <h2 class="text-2xl sm:text-3xl font-black text-amber-600">
+          ยอดเยี่ยม
+        </h2>
+        <p class="text-sm font-bold text-slate-700">
+          คุณทำสำเร็จถึง
+          <span id="victory-score-num" class="text-amber-600 text-xl font-black"
+            >8</span
+          >
+          / 10 ข้อ!
+        </p>
+        <p class="text-xs text-slate-500">
+          สุดยอดทักษะวิศวกรคอมพิวเตอร์!
+          คะแนนของคุณถูกบันทึกขึ้นกระดานเรียบร้อยแล้ว
+        </p>
+        <button
+          onclick="closeVictoryModal()"
+          class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all text-sm"
+        >
+          ดูสรุปผลคะแนน & ของรางวัล 🚀
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL ใส่รหัสผ่านผู้ดูแลระบบ -->
+    <div
+      id="admin-modal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden"
+    >
+      <div
+        class="bg-white border-2 border-slate-800 p-6 rounded-2xl shadow-2xl max-w-sm w-full text-center space-y-4 animate-pop-in relative"
+      >
+        <div
+          class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold"
+        >
+          🔑
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-slate-800">ผู้ดูแลระบบ (Admin)</h3>
+          <p class="text-xs text-slate-500 mt-0.5">
+            กรุณากรอกรหัสผ่านเพื่อเข้าสู่ระบบจัดการ
+          </p>
+        </div>
+        <form onsubmit="submitAdminPassword(event)" class="space-y-3">
+          <input
+            type="password"
+            id="admin-pass-input"
+            placeholder="••••••••"
+            required
+            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 text-center font-mono tracking-widest text-base bg-white"
+          />
+          <p id="admin-error-msg" class="text-xs text-red-500 font-bold hidden">
+            ❌ รหัสผ่านไม่ถูกต้อง!
+          </p>
+          <div class="flex gap-2 pt-1">
+            <button
+              type="button"
+              onclick="closeAdminModal()"
+              class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-4 rounded-xl text-xs transition active:scale-95"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="submit"
+              class="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-md text-xs transition active:scale-95"
+            >
+              ยืนยัน 🚀
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Quiz Logic Script -->
+    <script>
+      // =================================================================
+      // 📚 คลังคำถาม 100 ข้อสำหรับ ม.6 / ปวช. / ปวส. 
+      // (ง่าย 50 ข้อ | ปานกลาง 35 ข้อ | ยาก 15 ข้อ)
+      // =================================================================
+      const masterQuestionPool = [
+        // ---------------------------------------------------------------
+        // 🟢 EASY LEVEL (50 ข้อ)
+        // ---------------------------------------------------------------
+        {
+          level: "easy",
+          category: "SHORTCUT",
+          question: "ปุ่มทางรอดเวลาต้องการคัดลอก (Copy) และวาง (Paste) ข้อความอย่างรวดเร็วคืออะไร?",
+          choices: ["Ctrl + C และ Ctrl + V", "Ctrl + A และ Ctrl + X", "Ctrl + Z และ Ctrl + Y", "Alt + Tab และ Enter"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "HARDWARE",
+          question: "อุปกรณ์ชิ้นใดในคอมพิวเตอร์ ทำหน้าที่ประมวลผลเปรียบเสมือน 'สมอง' ของเครื่อง?",
+          choices: ["CPU (Central Processing Unit)", "RAM (Random Access Memory)", "PSU (Power Supply Unit)", "HDD (Hard Disk Drive)"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "INTERNET",
+          question: "เมื่อต่อ Wi-Fi แล้วหน้าจอขึ้นคำว่า 'No Internet Access' หมายความว่าอย่างไร?",
+          choices: ["เชื่อมต่อกับเราเตอร์ Wi-Fi แล้ว แต่เราเตอร์ยังไม่ออกอินเทอร์เน็ต", "เชื่อมต่อกับสายแลนหลุด และโทรศัพท์กำลังจะหมดแบตเตอรี่", "เชื่อมต่อกับบลูทูธล้มเหลว เนื่องจากสัญญาณถูกกวนจากภายนอก", "เชื่อมต่อกับระบบดาวเทียมผิดพลาด ไม่สามารถระบุตำแหน่งได้"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "PROGRAMMING",
+          question: "เวลารันโปรแกรมแล้วขึ้นตัวอักษรสีแดงแจ้งเตือน Error สิ่งแรกที่ควรมองหาคืออะไร?",
+          choices: ["อ่านบรรทัดและข้อความแจ้งเตือนสาเหตุของ Error", "กดปิดคอมพิวเตอร์แล้วไปนอนพักผ่อนทันที", "ตั้งจิตสวดมนต์ขอพรให้โค้ดหาย Error เอง", "ตบเคสคอมพิวเตอร์เบาๆ เผื่อระบบจะหาย"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "TRIVIA",
+          question: "คำว่า 'Bug' (บั๊ก) ในวงการคอมพิวเตอร์ ยุคแรกเริ่มมีที่มาจากเหตุการณ์ใด?",
+          choices: ["แมลงเข้าไปติดในเครื่องคอมพิวเตอร์หลอดสุญญากาศจนระบบชอร์ต", "โปรแกรมเมอร์โดนยุงกัดขณะนั่งเขียนโค้ดจนทำงานผิดพลาด", "สายแลนโดนหนูแทะขาดทำให้การรับส่งข้อมูลขัดข้อง", "ชื่อเล่นของนักคิดค้นโปรแกรมคอมพิวเตอร์คนแรกของโลก"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "HARDWARE",
+          question: "หน่วยความจำ RAM ในคอมพิวเตอร์ ทำหน้าที่หลักอย่างไร?",
+          choices: ["พักข้อมูลชั่วคราวให้ CPU ดึงไปประมวลผลได้รวดเร็ว", "เก็บข้อมูลรูปภาพและวิดีโอถาวรแม้ปิดเครื่องไปแล้ว", "จ่ายกระแสไฟฟ้าเลี้ยงอุปกรณ์ทุกชิ้นในเคสคอมพิวเตอร์", "ระบายความร้อนสะสมให้ระบบทำงานได้เสถียรยิ่งขึ้น"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "CYBER SECURITY",
+          question: "การตั้งรหัสผ่าน (Password) ข้อใดสุ่มเสี่ยงต่อการโดนคาดเดาหรือแฮกได้ง่ายที่สุด?",
+          choices: ["12345678 (ใช้ลำดับตัวเลขที่คาดเดาได้ง่าย)", "Cpe#2026! (ใช้อักขระพิเศษผสมตัวพิมพ์ใหญ่)", "K@8mP#92L (ใช้รหัสแบบสุ่มความยาว 9 ตัวอักษร)", "RmUTI_2569* (ใช้ตัวอักษรผสมเครื่องหมายพิเศษ)"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SOFTWARE",
+          question: "ข้อใดต่อไปนี้ 'ไม่ใช่' โปรแกรมท่องเว็บ (Web Browser)?",
+          choices: ["Microsoft Word", "Google Chrome", "Microsoft Edge", "Safari"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "TRIVIA",
+          question: "ถ้ากดเปิดคอมพิวเตอร์แล้วหน้าจอดำ พัดลมไม่หมุน เครื่องไม่ทำงาน สิ่งแรกที่ควรเช็กคือ?",
+          choices: ["ตรวจสอบสายปลั๊กไฟและสวิตช์เต้ารับว่าเสียบแน่นหรือไม่", "ตัดสินใจซื้อจอภาพคอมพิวเตอร์เครื่องใหม่มาเปลี่ยนทันที", "ทำการลบไฟล์โปรแกรมทั้งหมดในฮาร์ดดิสก์ทิ้งออกให้หมด", "ทำการลงระบบปฏิบัติการ Windows ใหม่ทันทีเพื่อแก้ไข"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SHORTCUT",
+          question: "คีย์บอร์ดชอร์ตคัต Ctrl + Z มีไว้สำหรับทำสิ่งใด?",
+          choices: ["ย้อนกลับการกระทำล่าสุด (Undo)", "ลบไฟล์ถาวรออกจากระบบ (Delete)", "ปิดหน้าต่างโปรแกรมทันที (Close)", "สลับภาษาบนคีย์บอร์ด (Language)"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "CONNECTOR",
+          question: "สายพอร์ตชนิดใด นิยมใช้เชื่อมต่อสัญญาณภาพและเสียงจากโน้ตบุ๊กเข้าสู่จอทีวีหรือโปรเจกเตอร์?",
+          choices: ["สาย HDMI", "สาย SATA", "สาย Audio 3.5mm", "สาย Power Cord"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "STORAGE",
+          question: "หน่วยวัดความจุข้อมูลในโทรศัพท์มือถือ ข้อใดมีขนาดใหญ่ที่สุด?",
+          choices: ["GB (จิกะไบต์)", "MB (เมกะไบต์)", "KB (กิโลไบต์)", "Byte (ไบต์)"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "GAMING",
+          question: "การติดไฟประดับ RGB บนอุปกรณ์คอมพิวเตอร์ ช่วยเรื่องใดเป็นหลัก?",
+          choices: ["เพิ่มความสวยงามและสร้างบรรยากาศในการใช้งาน", "ช่วยประหยัดค่าไฟฟ้าของบ้านลงได้มากกว่า 50%", "ช่วยทำให้อินเทอร์เน็ตมีความเร็วเพิ่มขึ้น 2 เท่า", "ช่วยลดอุณหภูมิความร้อนของ CPU โดยตรง"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SOFTWARE",
+          question: "ซอฟต์แวร์ประเภท Antivirus มีหน้าที่หลักตามข้อใด?",
+          choices: ["ตรวจจับและป้องกันมัลแวร์หรือไวรัสในระบบ", "ช่วยตัดต่อไฟล์วิดีโอและภาพระดับมืออาชีพ", "ใช้สำหรับพิมพ์งานและจัดทำเอกสารรายงาน", "ช่วยเร่งความเร็วในการพิมพ์งานบนคีย์บอร์ด"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "TRIVIA",
+          question: "รหัสข้อผิดพลาด '404 Not Found' บนหน้าเว็บไซต์ มีความหมายตรงกับข้อใด?",
+          choices: ["หาหน้าเว็บเพจหรือไฟล์ข้อมูลที่ต้องการเรียกดูไม่พบ", "สัญญาณอินเทอร์เน็ตของบ้านโดนตัดการเชื่อมต่อ", "รหัสผ่านสำหรับการเข้าสู่ระบบไม่ถูกต้อง", "เครื่องคอมพิวเตอร์ติดไวรัสชนิดร้ายแรง"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SHORTCUT",
+          question: "ปุ่มคีย์บอร์ด Ctrl + A ใช้สำหรับทำอะไร?",
+          choices: ["เลือกข้อความหรือวัตถุทั้งหมดในหน้าเพจ (Select All)", "จัดตำแหน่งข้อความให้ชิดซ้ายทั้งหมด (Align Left)", "เปิดหน้าต่างโปรแกรมใหม่ขึ้นมาใช้งาน (Add New)", "บันทึกเอกสารลงในเครื่องคอมพิวเตอร์ (Auto Save)"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SHORTCUT",
+          question: "ปุ่ม Caps Lock บนแป้นพิมพ์ มีไว้ทำอะไร?",
+          choices: ["ล็อกการพิมพ์ให้เป็นตัวอักษรพิมพ์ใหญ่ค้างไว้", "ลบคำข้างหน้าทั้งหมดในบรรทัดเดียวกัน", "เพิ่มระยะเว้นวรรคช่องว่างให้กว้างขึ้น", "สลับเปลี่ยนภาษาพิมพ์ระหว่างไทยกับอังกฤษ"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "HARDWARE",
+          question: "เมาส์ (Mouse) จัดเป็นอุปกรณ์คอมพิวเตอร์ประเภทใด?",
+          choices: ["อุปกรณ์นำเข้าข้อมูล (Input Device)", "อุปกรณ์แสดงผลข้อมูล (Output Device)", "อุปกรณ์จัดเก็บข้อมูล (Storage Device)", "อุปกรณ์ประมวลผลหลัก (Processing Device)"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "HARDWARE",
+          question: "จอภาพ (Monitor) จัดเป็นอุปกรณ์คอมพิวเตอร์ประเภทใด?",
+          choices: ["อุปกรณ์แสดงผลข้อมูล (Output Device)", "อุปกรณ์นำเข้าข้อมูล (Input Device)", "อุปกรณ์สำรองไฟฟ้า (UPS Device)", "อุปกรณ์จัดเก็บข้อมูล (Storage Device)"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SOFTWARE",
+          question: "ถังขยะในระบบ Windows (Recycle Bin) มีไว้ทำอะไร?",
+          choices: ["พักเก็บไฟล์ที่ลบชั่วคราวเพื่อรอการกู้คืน", "ทำการลบไวรัสออกจากระบบโดยอัตโนมัติ", "เพิ่มพื้นที่จัดเก็บของฮาร์ดดิสก์ให้มากขึ้น", "เก็บรหัสผ่านทั้งหมดของระบบปฏิบัติการ"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "HARDWARE",
+          question: "Power Bank (พาวเวอร์แบงก์) คืออุปกรณ์ใด?",
+          choices: ["แบตเตอรี่สำรองแบบพกพาสำหรับอุปกรณ์ชาร์จไฟ", "ตู้สำรองไฟขนาดใหญ่สำหรับคอมพิวเตอร์ตั้งโต๊ะ", "อุปกรณ์แปลงไฟจากแบตเตอรี่รถยนต์เข้าสู่บ้าน", "การ์ดแสดงผลภายนอกสำหรับโน้ตบุ๊ก"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "STORAGE",
+          question: "USB Flash Drive นิยมใช้ทำอะไรมากที่สุด?",
+          choices: ["บันทึกและพกพาไฟล์ข้อมูลย้ายไปใช้งานต่างสถานที่", "ช่วยเร่งความเร็วพัดลมระบายความร้อนคอมพิวเตอร์", "ช่วยขยายสัญญาณ Wi-Fi ให้ครอบคลุมพื้นที่ไกลขึ้น", "แปลงสัญญาณโทรทัศน์เข้าสู่หน้าจอคอมพิวเตอร์"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "MOBILE",
+          question: "การเปิด 'โหมดเครื่องบิน' (Airplane Mode) บนโทรศัพท์มือถือ จะเกิดผลอย่างไร?",
+          choices: ["ปิดสัญญาณสื่อสารไร้สายทั้งหมด (เช่น โทรศัพท์, Wi-Fi, Bluetooth)", "เพิ่มความเร็วในการดาวน์โหลดข้อมูลให้รวดเร็วขึ้นเป็นเท่าตัว", "ประหยัดพื้นที่จัดเก็บข้อมูลภายในเมมโมรี่การ์ดของมือถือ", "เปลี่ยนรูปแบบการแสดงผลหน้าจอให้เป็นสีขาวดำ"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "NETWORK",
+          question: "สัญญาณไร้สาย Bluetooth นิยมใช้ประโยชน์ในลักษณะใด?",
+          choices: ["เชื่อมต่อส่งข้อมูลระยะใกล้ เช่น หูฟังไร้สาย หรือเมาส์ไร้สาย", "ส่งสัญญาณอินเทอร์เน็ตความเร็วสูงข้ามระหว่างจังหวัด", "ใช้เชื่อมต่อสัญญาณดาวเทียมเพื่อระบุพิกัดภายนอกโลก", "ใช้ส่งพลังงานไฟฟ้าไร้สายเพื่อชาร์จแบตเตอรี่อุปกรณ์"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SHORTCUT",
+          question: "คีย์บอร์ดชอร์ตคัต Ctrl + S มีหน้าที่สำคัญคืออะไร?",
+          choices: ["บันทึกไฟล์งาน (Save)", "ปิดโปรแกรมทำงาน (Shutdown)", "ค้นหาข้อความ (Search)", "สลับหน้าต่างงาน (Switch)"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SHORTCUT",
+          question: "ปุ่ม Alt + Tab บนแป้นพิมพ์คอมพิวเตอร์ ใช้ประโยชน์อย่างไร?",
+          choices: ["สลับการทำงานไปมาระหว่างหน้าต่างโปรแกรมที่เปิดอยู่", "ปิดการทำงานของคอมพิวเตอร์ลงในทันที", "ลบไฟล์ข้อมูลทั้งหมดที่วางอยู่บนหน้าจอเดสก์ท็อป", "ขยายหน้าต่างโปรแกรมปัจจุบันให้แสดงผลเต็มหน้าจอ"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SHORTCUT",
+          question: "การกดปุ่ม F5 บนเว็บเบราว์เซอร์ส่งผลอย่างไร?",
+          choices: ["รีเฟรชโหลดหน้าเว็บเพจใหม่อีกครั้ง (Refresh)", "ปิดแท็บการทำงานปัจจุบันทิ้งทันที (Close Tab)", "ย้อนกลับไปหน้าเว็บเพจก่อนหน้า (Go Back)", "ขยายหน้าต่างเบราว์เซอร์ให้เต็มจอ (Full Screen)"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "HARDWARE",
+          question: "ลำโพง (Speaker) ทำหน้าที่อะไรในระบบคอมพิวเตอร์?",
+          choices: ["แปลงสัญญาณไฟฟ้าเป็นสัญญาณเสียงออกมาให้ได้ยิน", "รับสัญญาณเสียงพูดภายนอกบันทึกเข้าสู่คอมพิวเตอร์", "ประมวลผลคำนวณภาพกราฟิก 3 มิติออกสู่หน้าจอ", "กระจายสัญญาณอินเทอร์เน็ตไร้สายให้กับอุปกรณ์อื่น"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "HARDWARE",
+          question: "ไมโครโฟน (Microphone) ทำหน้าที่อะไร?",
+          choices: ["รับสัญญาณเสียงพูดภายนอกส่งเข้าไปประมวลผลในคอมพิวเตอร์", "เปล่งสัญญาณเสียงเพลงและเสียงประกอบออกมาจากระบบ", "ใช้สำหรับขยายขนาดข้อความในเอกสารให้ใหญ่ขึ้น", "ใช้สำหรับตรวจจับและสแกนหาไวรัสในไฟล์เสียง"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SOFTWARE",
+          question: "ไฟล์ที่มีนามสกุล `.pdf` มักเป็นไฟล์ประเภทใด?",
+          choices: ["เอกสารที่คงรูปแบบเดิมไว้สำหรับการเปิดอ่านหรือสั่งพิมพ์", "ไฟล์วิดีโอความละเอียดสูงสำหรับเปิดฉายภาพยนตร์", "ไฟล์เพลงคุณภาพสูงสำหรับเปิดฟังบนเครื่องคอมพิวเตอร์", "ไฟล์โปรแกรมสำหรับใช้อิสระในการติดตั้งลงระบบ"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SOFTWARE",
+          question: "ไฟล์นามสกุล `.mp3` เป็นไฟล์ประเภทใด?",
+          choices: ["ไฟล์เสียงและเพลง (Audio File)", "ไฟล์เอกสารข้อความ (Text File)", "ไฟล์รูปภาพนิ่ง (Image File)", "ไฟล์โปรแกรมเกม (Executable File)"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SOFTWARE",
+          question: "ไฟล์นามสกุล `.mp4` เป็นไฟล์ประเภทใด?",
+          choices: ["ไฟล์วิดีโอภาพพร้อมเสียง (Video File)", "ไฟล์รูปภาพนิ่งกราฟิก (Image File)", "ไฟล์ตารางคำนวณข้อมูล (Spreadsheet File)", "ไฟล์ฟอนต์ตัวอักษร (Font File)"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SHORTCUT",
+          question: "ปุ่ม Print Screen (PrtScn) บนคีย์บอร์ด มีไว้ใช้ทำอะไร?",
+          choices: ["จับภาพหน้าจอปัจจุบันไปไว้ในคลิปบอร์ด (Capture)", "ส่งเอกสารออกทางเครื่องพิมพ์ในทันที (Print)", "เปิดหน้าต่างตั้งค่าการแสดงผลหน้าจอ (Settings)", "ปรับระดับความสว่างของแสงไฟคีย์บอร์ด (Brightness)"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "INTERNET",
+          question: "จดหมายขยะในอีเมลมักถูกเรียกว่าอะไร?",
+          choices: ["Spam (จดหมายขยะ)", "Bug (ข้อผิดพลาด)", "Phish (ข้อความหลอกลวง)", "Virus (โปรแกรมอันตราย)"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SOFTWARE",
+          question: "การเปิดใช้งาน Dark Mode บนสมาร์ตโฟนหรือโปรแกรม ช่วยเรื่องใด?",
+          choices: ["ถนอมสายตาในที่มืดและช่วยลดการใช้พลังงานบนจอ OLED", "ทำให้อินเทอร์เน็ตมีความเร็วในการดาวน์โหลดสูงขึ้น", "ป้องกันมัลแวร์และไวรัสไม่ให้เข้าสู่ระบบคอมพิวเตอร์", "ช่วยลดอุณหภูมิความร้อนภายในเคสคอมพิวเตอร์"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "NETWORK",
+          question: "กล่องเราเตอร์ Wi-Fi (Wi-Fi Router) มีหน้าที่ทำอะไร?",
+          choices: ["กระจายสัญญาณอินเทอร์เน็ตไร้สายให้กับอุปกรณ์ต่างๆ", "สำรองกระแสไฟฟ้าเวลาเกิดเหตุการณ์ไฟบ้านดับ", "จัดเก็บข้อมูลรูปภาพและวิดีโออย่างถาวร", "ประมวลผลคำนวณกราฟิกสำหรับการเล่นเกม"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SHORTCUT",
+          question: "ปุ่ม Esc (Escape) บนมุมซ้ายบนคีย์บอร์ด มีหน้าที่หลักคืออะไร?",
+          choices: ["ยกเลิกคำสั่ง ออกจากโหมดปัจจุบัน หรือปิดหน้าต่างป็อปอัป", "ลบข้อความทั้งหมดที่พิมพ์อยู่ในบรรทัดปัจจุบัน", "ปิดการทำงานของคอมพิวเตอร์ลงในทันที", "ข้ามการทำงานไปยังหน้าสุดท้ายของเอกสาร"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SHORTCUT",
+          question: "ปุ่ม Spacebar บนคีย์บอร์ด มีไว้ใช้ทำอะไร?",
+          choices: ["เว้นระยะช่องว่างระหว่างตัวอักษร", "สลับการพิมพ์ขึ้นบรรทัดใหม่", "ลบตัวอักษรย้อนหลังทีละตัว", "เปิดเมนู Start ของระบบ"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SHORTCUT",
+          question: "ปุ่ม Backspace ทำหน้าที่แตกต่างจากปุ่ม Delete อย่างไร?",
+          choices: ["Backspace ลบตัวอักษรทางซ้าย / Delete ลบตัวอักษรทางขวา", "Backspace ลบเฉพาะรูปภาพ / Delete ลบเฉพาะตัวอักษร", "Backspace ใช้ลบไฟล์งาน / Delete ใช้ลบข้อความพิมพ์", "Backspace ใช้ลบทั้งบรรทัด / Delete ใช้ลบทั้งย่อหน้า"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "HARDWARE",
+          question: "Power Supply Unit (PSU) ในเคสคอมพิวเตอร์ทำหน้าที่อะไร?",
+          choices: ["แปลงและจ่ายกระแสไฟฟ้าเลี้ยงอุปกรณ์ชิ้นส่วนคอมพิวเตอร์", "ระบายความร้อนสะสมให้หน่วยประมวลผลกลาง", "จัดเก็บข้อมูลไฟล์เอกสารและโปรแกรมอย่างถาวร", "แสดงผลภาพกราฟิกออกทางหน้าจอคอมพิวเตอร์"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "HARDWARE",
+          question: "การ์ดจอ (GPU) มีหน้าที่สำคัญอย่างไรในคอมพิวเตอร์?",
+          choices: ["ประมวลผลคำนวณและแสดงผลภาพกราฟิกออกทางหน้าจอ", "จ่ายกระแสไฟฟ้าเลี้ยงเมนบอร์ดและอุปกรณ์ต่อพ่วง", "จัดเก็บไฟล์เอกสารและระบบปฏิบัติการไว้ในเครื่อง", "รับสัญญาณการพิมพ์คำสั่งจากคีย์บอร์ดและเมาส์"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "SOFTWARE",
+          question: "ข้อใดต่อไปนี้จัดเป็นระบบปฏิบัติการ (Operating System - OS)?",
+          choices: ["Windows 11 (ระบบปฏิบัติการ)", "Google Chrome (เว็บเบราว์เซอร์)", "Microsoft Powerpoint (นำเสนอ)", "Adobe Photoshop (แต่งรูป)"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "MOBILE",
+          question: "Android และ iOS คืออะไร?",
+          choices: ["ระบบปฏิบัติการบนสมาร์ตโฟนและแท็บเล็ต", "ชื่อยี่ห้อของเครื่องโทรศัพท์มือถือ", "ชื่อผู้ให้บริการสัญญาณอินเทอร์เน็ต", "ชื่อไวรัสร้ายแรงบนอุปกรณ์มือถือ"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "INTERNET",
+          question: "Google Search ใช้ทำอะไรเป็นหลัก?",
+          choices: ["ค้นหาข้อมูล สารสนเทศ และเว็บเพจบนโลกอินเทอร์เน็ต", "ใช้สำหรับพิมพ์เอกสารรายงานและตารางข้อมูล", "ใช้สำหรับส่งข้อความสั้น SMS หาโทรศัพท์มือถือ", "ใช้สำหรับวาดรูปภาพการ์ตูนและภาพประกอบ 3D"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "TRIVIA",
+          question: "QR Code สัญลักษณ์สี่เหลี่ยมสีดำบนพื้นขาว นิยมใช้ประโยชน์อะไร?",
+          choices: ["สแกนเพื่อเข้าถึงลิงก์ข้อมูล หรือสแกนเพื่อชำระเงินรวดเร็ว", "สแกนเพื่อทดสอบความเร็วสัญญาณอินเทอร์เน็ต", "สแกนเพื่อทำความสะอาดและลบไวรัสในมือถือ", "สแกนเพื่อขยายสัญญาณ Wi-Fi ให้ครอบคลุม"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "STORAGE",
+          question: "Google Drive คือบริการอะไร?",
+          choices: ["บริการจัดเก็บและแชร์ไฟล์ข้อมูลบนคลาวด์ (Cloud Storage)", "บริการสั่งซื้ออาหารและจัดส่งสินค้าออนไลน์", "บริการระบบนำทางและแผนที่ดาวเทียม GPS", "โปรแกรมสำหรับเปิดดูภาพยนตร์และฟังเพลง"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "TRIVIA",
+          question: "ถ้าเผลอทำน้ำหกใส่คีย์บอร์ด สิ่งแรกที่ต้องทำทันทีคืออะไร?",
+          choices: ["รีบถอดสายหรือปิดสวิตช์ทันทีเพื่อป้องกันไฟฟ้าชอร์ต", "นำไดร์เป่าผมลมร้อนจี้เป่าจ่อใกล้ๆ ให้แห้งสนิท", "เปิดไฟ RGB ทิ้งไว้เพื่อให้ความร้อนช่วยให้น้ำระเหย", "กดปุ่มบนคีย์บอร์ดรัวๆ เพื่อไล่หยดน้ำให้ออกมา"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "HARDWARE",
+          question: "ฝุ่นเกาะหนาแน่นที่พัดลมระบายความร้อนคอมพิวเตอร์ จะส่งผลเสียอย่างไร?",
+          choices: ["การระบายความร้อนแย่ลง เครื่องร้อนจัดจนช้าหรือดับเอง", "ทำให้อินเทอร์เน็ตมีความเร็วลดลงอย่างเห็นได้ชัด", "ทำให้ความจุในการเก็บข้อมูลของฮาร์ดดิสก์ลดลง", "ทำให้หน้าจอคอมพิวเตอร์เปลี่ยนเฉดสีเป็นสีชมพู"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "TRIVIA",
+          question: "วิธีปิดคอมพิวเตอร์ (Shutdown) ที่ถูกต้องที่สุดคือข้อใด?",
+          choices: ["สั่งกด Shutdown ผ่านเมนูของระบบปฏิบัติการ", "ถอดปลั๊กไฟบ้านออกทันทีในขณะที่เปิดเครื่องอยู่", "กดสวิตช์ตัดกระแสไฟฟ้าที่ปลั๊กพ่วงโดยตรง", "ดึงสายไฟที่เชื่อมต่อเคสคอมพิวเตอร์ออกทันที"],
+          answer: 0,
+        },
+        {
+          level: "easy",
+          category: "INTERNET",
+          question: "การเปิดโหมด 'Incognito Mode' หรือ 'Private Browsing' บนเบราว์เซอร์ มีประโยชน์อย่างไร?",
+          choices: ["ไม่บันทึกประวัติการท่องเว็บและคุกกี้ไว้ในคอมพิวเตอร์", "ซ่อนพิกัดตำแหน่งบ้านของผู้ใช้งานจากดาวเทียม", "เปิดให้อินเทอร์เน็ตสามารถใช้งานได้ฟรีโดยไม่เสียเงิน", "ป้องกันไวรัสและมัลแวร์เข้าสู่คอมพิวเตอร์ได้ 100%"],
+          answer: 0,
+        },
+
+        // ---------------------------------------------------------------
+        // 🟡 MEDIUM LEVEL (35 ข้อ)
+        // ---------------------------------------------------------------
+        {
+          level: "medium",
+          category: "FUNDAMENTALS",
+          question: "ระบบเลขฐานสอง (Binary System) ที่คอมพิวเตอร์ใช้ในการประมวลผล ประกอบด้วยตัวเลขใดบ้าง?",
+          choices: ["เลข 0 และ 1", "เลข 0 ถึง 9", "เลข 1 และ 2", "เลข 1 ถึง 10"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "NETWORK",
+          question: "หมายเลข 'IP Address' ในระบบเครือข่ายคอมพิวเตอร์ ทำหน้าที่เปรียบเสมือนสิ่งใด?",
+          choices: ["หมายเลขอ้างอิงระบุตำแหน่งของเครื่องในระบบเครือข่าย", "ระดับความเร็วของสายแลนที่กำลังใช้ออกอินเทอร์เน็ต", "รหัสผ่านสำหรับเปิดใช้งานเครื่องคอมพิวเตอร์ส่วนบุคคล", "ชื่อรุ่นของเครื่องคอมพิวเตอร์และระบบปฏิบัติการ"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "WEB DEVELOPMENT",
+          question: "ภาษาภาษาใดที่ใช้เป็นหลักในการกำหนด 'โครงสร้าง' ของหน้าเว็บไซต์?",
+          choices: ["HTML (HyperText Markup Language)", "CSS (Cascading Style Sheets)", "Python (Programming Language)", "C++ (Programming Language)"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "PROGRAMMING",
+          question: "ในการเขียนโปรแกรม เครื่องหมาย `=` ในคำสั่ง `x = 5` มีความหมายอย่างไร?",
+          choices: ["นำค่าทางขวามือไปจัดเก็บไว้ในตัวแปรทางซ้ายมือ", "เปรียบเทียบว่าค่าสองฝั่งเท่ากันหรือไม่", "เพิ่มค่าให้ตัวแปรฝั่งซ้ายขึ้นอีกหนึ่งเท่าตัว", "ลบค่าออกจากตัวแปรฝั่งซ้ายจนเหลือศูนย์"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "CYBER SECURITY",
+          question: "พฤติกรรมแบบใดจัดเป็นรูปแบบการโคลนเว็บหรือส่งอีเมลหลอกลวงเพื่อขโมยรหัสผ่าน (Phishing)?",
+          choices: ["ส่งลิงก์เว็บปลอมมาหลอกลวงให้กรอกข้อมูลรหัสผ่าน", "เปิดฟังเพลงออนไลน์ผ่านเว็บเบราว์เซอร์ขณะพิมพ์งาน", "อัปเดตระบบปฏิบัติการให้เป็นเวอร์ชันล่าสุดเสมอ", "การสแกนตรวจสอบไวรัสในแฟลชไดรฟ์ก่อนเปิดใช้งาน"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "HARDWARE",
+          question: "อุปกรณ์จัดเก็บข้อมูลแบบ SSD มีจุดเด่นเหนือกว่า ฮาร์ดดิสก์แบบจานหมุน (HDD) อย่างไร?",
+          choices: ["มีความเร็วอ่านเขียนสูงกว่ามาก และทนแรงสะเทือนได้ดีกว่า", "มีราคาต่อความจุที่ถูกกว่าฮาร์ดดิสก์แบบจานหมุนหลายเท่าตัว", "ไม่ต้องใช้พลังงานไฟฟ้าในการทำงานเลยแม้แต่น้อย", "สามารถเปิดฟังเพลงได้ในตัวเองโดยไม่ต้องต่อลำโพงเพิ่ม"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "PROGRAMMING",
+          question: "การเกิดสภาวะ 'Infinite Loop' ในการเขียนโปรแกรมมีสาเหตุมาจากอะไร?",
+          choices: ["เงื่อนไขหยุดวนลูปไม่เป็นจริง ทำให้ทำงานไม่สิ้นสุด", "คอมพิวเตอร์ไม่ได้ทำการเชื่อมต่อเข้าสู่ระบบอินเทอร์เน็ต", "ตั้งชื่อตัวแปรในโปรแกรมเป็นภาษาไทยทั้งหมด", "ไม่ได้เปิดพัดลมระบายความร้อนให้เคสคอมพิวเตอร์"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "NETWORK",
+          question: "โปรโตคอล 'HTTPS' แตกต่างจาก 'HTTP' ทั่วไปอย่างไร?",
+          choices: ["HTTPS มีการเข้ารหัสข้อมูลเพื่อความปลอดภัยในการรับส่ง", "HTTPS ใช้สำหรับการดาวน์โหลดรูปภาพและวิดีโอ HD เท่านั้น", "HTTPS เป็นเว็บไซต์ที่ผู้ใช้ต้องเสียค่าบริการเข้าชมรายเดือน", "HTTPS สามารถเปิดใช้งานได้เฉพาะบนโทรศัพท์มือถือเท่านั้น"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "DATABASE",
+          question: "คำสั่ง SQL ข้อใด ใช้สำหรับการ 'ค้นหาหรือดึงข้อมูล' ออกมาจากฐานข้อมูล?",
+          choices: ["SELECT (ค้นหาและดึงข้อมูล)", "DELETE (ลบข้อมูลออกจากตาราง)", "INSERT (เพิ่มข้อมูลใหม่)", "UPDATE (แก้ไขข้อมูลเดิม)"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "PROGRAMMING",
+          question: "ภาษาโปรแกรมมิ่งใด นิยมใช้อย่างแพร่หลายในการพัฒนา AI และงานด้านวิเคราะห์ข้อมูล (Data Science) ในปัจจุบัน?",
+          choices: ["Python (ไพธอน)", "HTML (เอชทีเอ็มแอล)", "Assembly (แอสเซมบลี)", "Pascal (ปาสคาล)"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "WEB DEVELOPMENT",
+          question: "ภาษา CSS มีหน้าที่หลักในการทำอะไรกับหน้าเว็บไซต์?",
+          choices: ["กำหนดสีสไตล์ ฟอนต์ และจัดเลย์เอาต์ความสวยงาม", "สร้างฐานข้อมูลสำหรับจัดเก็บรหัสผ่านของผู้ใช้งาน", "คำนวณสูตรคณิตศาสตร์และสมการตรรกศาสตร์ขั้นสูง", "เชื่อมต่อและรับส่งแพ็กเก็ตข้อมูลผ่านสายแลน"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "WEB DEVELOPMENT",
+          question: "ภาษา JavaScript นิยมใช้ทำอะไรบนหน้าเว็บเพจ?",
+          choices: ["สร้างลูกเล่นและตอบสนองแบบโต้ตอบ (Interactive)", "ใช้เขียนระบบปฏิบัติการทดแทน Windows และ macOS", "ใช้สั่งพิมพ์เอกสารออกทางเครื่องพิมพ์โดยตรง", "ใช้เร่งความเร็วการทำงานของการ์ดจอคอมพิวเตอร์"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "NETWORK",
+          question: "เครือข่าย LAN (Local Area Network) หมายถึงระบบเครือข่ายแบบใด?",
+          choices: ["เครือข่ายเชื่อมต่อระยะใกล้ เช่น ในอาคาร หรือห้องคอมฯ", "เครือข่ายเชื่อมต่อระหว่างประเทศและข้ามทวีปทั่วโลก", "เครือข่ายการสื่อสารผ่านดาวเทียมภายนอกชั้นบรรยากาศ", "เครือข่ายเชื่อมต่อเคเบิลใต้น้ำระหว่างมหาสมุทร"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "PROGRAMMING",
+          question: "ในสัญลักษณ์ผังงาน (Flowchart) รูป 'สี่เหลี่ยมผืนผ้า' หมายถึงอะไร?",
+          choices: ["กระบวนการทำงานหรือการประมวลผล (Process)", "การตรวจสอบเงื่อนไขและการตัดสินใจ (Decision)", "จุดเริ่มต้นหรือจุดสิ้นสุดของผังงาน (Start/End)", "การรับข้อมูลเข้าจากคีย์บอร์ด (Manual Input)"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "PROGRAMMING",
+          question: "ในสัญลักษณ์ผังงาน (Flowchart) รูป 'สี่เหลี่ยมข้าวหลามตัด' หมายถึงอะไร?",
+          choices: ["การตรวจสอบเงื่อนไขและการตัดสินใจ (Decision)", "กระบวนการทำงานหรือการประมวลผล (Process)", "จุดเชื่อมต่อผังงานภายในหน้าเดียวกัน (Connector)", "การแสดงผลข้อมูลออกทางเครื่องพิมพ์ (Display)"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "NETWORK",
+          question: "Domain Name เช่น `www.google.com` มีไว้เพื่ออะไร?",
+          choices: ["ช่วยให้จดจำชื่อเว็บได้ง่ายขึ้น แทนการจำเลข IP Address", "ช่วยเพิ่มความเร็วในการดาวน์โหลดไฟล์ขนาดใหญ่", "ช่วยป้องกันไม่ให้หน้าเว็บไซต์ติดไวรัสคอมพิวเตอร์", "ช่วยขยายขนาดหน้าจอของเบราว์เซอร์ให้กว้างขึ้น"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "NETWORK",
+          question: "ระบบ DNS (Domain Name System) มีหน้าที่ทำอะไร?",
+          choices: ["แปลแปลงชื่อโดเมนเนมให้เป็นหมายเลข IP Address", "สแกนหาและทำลายไวรัสที่ซ่อนอยู่ในเว็บไซต์", "ตัดต่อรูปภาพและจัดรูปแบบไฟล์บนหน้าเว็บเพจ", "บันทึกรหัสผ่านและชื่อผู้ใช้ของระบบ Wi-Fi"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "NETWORK",
+          question: "Firewall (ไฟร์วอลล์) ในระบบคอมพิวเตอร์ทำหน้าที่อะไร?",
+          choices: ["คัดกรองและป้องกันการเข้าถึงที่ไม่ได้รับอนุญาต", "ป้องกันความร้อนสะสมภายในเคสคอมพิวเตอร์", "เร่งความเร็วความถี่การทำงานของหน่วยประมวลผล", "ปรับระดับแรงดันไฟฟ้าในระบบเครือข่ายคอมพิวเตอร์"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "PROGRAMMING",
+          question: "ฟังก์ชัน (Function) ในการเขียนโปรแกรม มีประโยชน์อย่างไร?",
+          choices: ["รวมชุดคำสั่งเป็นบล็อกเพื่อเรียกใช้ซ้ำได้โดยไม่ต้องพิมพ์ใหม่", "ใช้ล็อกรหัสผ่านเพื่อป้องกันไม่ให้ผู้อื่นแอบดูโค้ด", "ช่วยให้คอมพิวเตอร์ประมวลผลได้โดยไม่ต้องใช้ไฟฟ้า", "ใช้สำหรับลบไฟล์ที่ไม่จำเป็นออกจากระบบปฏิบัติการ"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "PROGRAMMING",
+          question: "โครงสร้างการตัดสินใจ `If - Else` ในการเขียนโปรแกรม ใช้ทำอะไร?",
+          choices: ["เลือกทำคำสั่งตามเงื่อนไขที่เป็นจริงหรือเท็จ", "สั่งให้โปรแกรมทำงานวนซ้ำตามจำนวนรอบที่กำหนด", "นำเข้าข้อมูลสัญญาณเสียงจากไมโครโฟนเข้าสู่โปรแกรม", "ลบตัวแปรทั้งหมดออกจากหน่วยความจำชั่วคราว"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "PROGRAMMING",
+          question: "ตำแหน่งดัชนี (Index) ตัวแรกของ Array หรือ List ในภาษาโปรแกรมมิ่งส่วนใหญ่ เริ่มต้นที่เลขใด?",
+          choices: ["เริ่มที่ตำแหน่ง 0 (Index 0)", "เริ่มที่ตำแหน่ง 1 (Index 1)", "เริ่มที่ตำแหน่ง -1 (Index -1)", "เริ่มที่ตำแหน่ง 100 (Index 100)"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "PROGRAMMING",
+          question: "ตัวแปรชนิด `String` ใช้สำหรับเก็บข้อมูลประเภทใด?",
+          choices: ["ข้อความหรือลำดับตัวอักษร (Text/String)", "ตัวเลขจำนวนเต็ม (Integer)", "ตัวเลขทศนิยม (Float/Double)", "ค่าความจริง (Boolean)"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "PROGRAMMING",
+          question: "ตัวแปรชนิด `Integer` (int) ใช้เก็บข้อมูลประเภทใด?",
+          choices: ["ตัวเลขจำนวนเต็ม (Integer)", "ข้อความตัวอักษร (String)", "ตัวเลขทศนิยม (Float)", "ค่าความจริง (Boolean)"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "PROGRAMMING",
+          question: "ตัวแปรชนิด `Boolean` เก็บค่าข้อมูลแบบใดได้บ้าง?",
+          choices: ["ค่าความจริง 2 สถานะ คือ True หรือ False", "ตัวอักษรภาษาอังกฤษตั้งแต่ A ถึง Z", "ตัวเลขจำนวนเต็มตั้งแต่ 0 ถึง 9", "ที่อยู่เว็บไซต์และ URL ทั้งหมด"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "NETWORK",
+          question: "คำสั่ง `ping` ใน Command Prompt / Terminal นิยมใช้ทำอะไร?",
+          choices: ["ทดสอบการเชื่อมต่อเครือข่ายไปยัง IP ปลายทาง", "สแกนหาไฟล์เพลงและวิดีโอภายในเครื่อง", "ล้างไฟล์ขยะชั่วคราวในฮาร์ดดิสก์ให้หมดไป", "เปลี่ยนชื่อเครื่องคอมพิวเตอร์และโดเมน"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "NETWORK",
+          question: "คำว่า 'URL' ย่อมาจากอะไร?",
+          choices: ["Uniform Resource Locator", "Universal Run Link", "User Response Level", "United Real Location"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "HARDWARE",
+          question: "หน่วยความจำ Cache (แคช) ที่อยู่ใน CPU มีคุณสมบัติเด่นอย่างไร?",
+          choices: ["มีความเร็วสูงมาก ใช้เก็บข้อมูลที่ CPU เรียกใช้บ่อยๆ", "มีความจุขนาดใหญ่หลาย TB สำหรับเก็บไฟล์วิดีโอ", "มีราคาถูกที่สุดในบรรดาหน่วยความจำคอมพิวเตอร์", "สามารถเก็บข้อมูลถาวรได้โดยไม่ต้องอาศัยไฟฟ้า"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "HARDWARE",
+          question: "หน่วยความจำ ROM (Read-Only Memory) มีคุณสมบัติอย่างไร?",
+          choices: ["อ่านได้อย่างเดียว ข้อมูลไม่สูญหายแม้ปิดเครื่อง", "ลบและเขียนข้อมูลใหม่ได้รวดเร็วที่สุดในระบบ", "ใช้สำหรับประมวลผลภาพเกม 3 มิติความละเอียดสูง", "ใช้เป็นถังขยะสำหรับพักไฟล์ก่อนทำการลบทิ้ง"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "FUNDAMENTALS",
+          question: "ขนาดข้อมูล 1 Byte (ไบต์) มีค่าเท่ากับกี่ Bit (บิต)?",
+          choices: ["8 Bit (8 บิต)", "4 Bit (4 บิต)", "16 Bit (16 บิต)", "1024 Bit (1024 บิต)"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "SOFTWARE",
+          question: "รูปแบบข้อมูลแบบ JSON นิยมใช้ประโยชน์อย่างไรในปัจจุบัน?",
+          choices: ["ใช้เป็นรูปแบบมาตรฐานในการแลกเปลี่ยนข้อมูลระหว่างกัน", "ใช้สำหรับตัดต่อและปรับแต่งไฟล์เสียงเพลง", "ใช้สำหรับบีบอัดไฟล์วิดีโอให้มีขนาดเล็กลง", "ใช้สำหรับการติดตั้งระบบปฏิบัติการตัวใหม่"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "SOFTWARE",
+          question: "ระบบ Git หรือ GitHub มีประโยชน์อย่างไรต่อนักพัฒนาซอฟต์แวร์?",
+          choices: ["ใช้ติดตามควบคุมเวอร์ชันโค้ดและทำงานร่วมกันเป็นทีม", "ใช้อัปสปีดความเร็วการเชื่อมต่ออินเทอร์เน็ตบ้าน", "ใช้สำหรับดาวน์โหลดเกมและโปรแกรมคอมพิวเตอร์ฟรี", "ใช้วาดรูปกราฟิก 2 มิติและออกแบบโลโก้"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "PROGRAMMING",
+          question: "การพัฒนาเว็บแบบ Frontend แตกต่างจาก Backend อย่างไร?",
+          choices: ["Frontend จัดการส่วนแสดงผล / Backend จัดการเซิร์ฟเวอร์และฐานข้อมูล", "Frontend เขียนด้วย C++ เท่านั้น / Backend เขียนด้วย HTML เท่านั้น", "Frontend ไม่ต้องใช้คอมฯ / Backend ต้องใช้โน้ตบุ๊กสเปกสูง", "Frontend และ Backend ทำหน้าที่เหมือนกันทุกประการ"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "SOFTWARE",
+          question: "API (Application Programming Interface) ทำหน้าที่เปรียบเสมือนอะไร?",
+          choices: ["ตัวกลางเชื่อมต่อให้โปรแกรมต่างระบบสื่อสารแลกเปลี่ยนข้อมูลกันได้", "อุปกรณ์ทำความสะอาดชิ้นส่วนภายในเคสคอมพิวเตอร์", "สายชาร์จแบตเตอรี่ชนิดพิเศษสำหรับสมาร์ตโฟน", "หน้าจอแสดงผลสำรองสำหรับเชื่อมต่อหลายหน้าจอ"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "CYBER SECURITY",
+          question: "คำว่า 'Malware' (มัลแวร์) หมายถึงอะไร?",
+          choices: ["ชื่อเรียกรวมของโปรแกรมประสงค์ร้ายทุกชนิดในระบบ", "โปรแกรมช่วยเร่งความเร็วการทำงานของเครื่อง", "ชิ้นส่วนอะไหล่คอมพิวเตอร์มือสองสภาพดี", "ฮาร์ดดิสก์รุ่นเก่าที่เลิกผลิตไปแล้ว"],
+          answer: 0,
+        },
+        {
+          level: "medium",
+          category: "PROGRAMMING",
+          question: "ตัวแปลภาษาแบบ Compiler แตกต่างจาก Interpreter อย่างไร?",
+          choices: ["Compiler แปลโค้ดทั้งโปรแกรมทีเดียว / Interpreter แปลทีละบรรทัด", "Compiler แปลภาษาไทย / Interpreter แปลภาษาอังกฤษ", "Compiler ใช้เขียนเกม / Interpreter ใช้พิมพ์งานเอกสาร", "Compiler ทำงานช้ากว่า Interpreter 1,000 เท่า"],
+          answer: 0,
+        },
+
+        // ---------------------------------------------------------------
+        // 🔴 HARD LEVEL (15 ข้อ)
+        // ---------------------------------------------------------------
+        {
+          level: "hard",
+          category: "LOGIC GATES",
+          question: "💀 [ข้อยาก] ลอจิกเกตชนิด 'AND Gate' จะส่งสัญญาณผลลัพธ์เป็น 1 (True) ในกรณีใด?",
+          choices: ["เมื่อสัญญาณขาเข้า (Input) ทุกตัวเป็น 1 พร้อมกันทั้งหมด", "เมื่อสัญญาณขาเข้าทุกตัวเป็น 0 พร้อมกันทั้งหมด", "เมื่อมีสัญญาณขาเข้าตัวใดตัวหนึ่งเป็น 1 เพียงตัวเดียว", "เมื่อสัญญาณขาเข้ามีความถี่สูงกว่าระดับปกติ"],
+          answer: 0,
+        },
+        {
+          level: "hard",
+          category: "CYBER SECURITY",
+          question: "💀 [ข้อยาก] มัลแวร์ประเภท 'Ransomware' (ไวรัสเรียกค่าไถ่) สร้างความเสียหายต่อระบบอย่างไร?",
+          choices: ["แอบเข้ารหัสล็อกไฟล์ข้อมูล แล้วขู่เรียกเงินแลกกับรหัสปลดล็อก", "ขโมยรหัสผ่าน Wi-Fi ไปแจกจ่ายให้ผู้อื่นใช้งานฟรี", "สั่งให้พัดลมคอมพิวเตอร์หมุนถอยหลังจนเกิดความร้อน", "ลบรูปภาพพื้นหลังบนหน้าจอ Desktop ออกจากระบบ"],
+          answer: 0,
+        },
+        {
+          level: "hard",
+          category: "DATA STRUCTURE",
+          question: "💀 [ข้อยาก] โครงสร้างข้อมูลแบบ 'Queue' (คิว) ใช้หลักการจัดการข้อมูลแบบใด?",
+          choices: ["FIFO (First In, First Out — ข้อมูลที่เข้ามาก่อน จะออกไปก่อน)", "LIFO (Last In, First Out — ข้อมูลที่เข้ามาทีหลัง จะออกไปก่อน)", "Random (สุ่มนำข้อมูลออกมาทำงานโดยไม่มีลำดับขั้น)", "Priority (นำข้อมูลตัวที่มีขนาดใหญ่ที่สุดออกมาทำก่อน)"],
+          answer: 0,
+        },
+        {
+          level: "hard",
+          category: "IOT & EMBEDDED",
+          question: "💀 [ข้อยาก] บอร์ดไมโครคอนโทรลเลอร์ยี่ห้อใดยอดนิยมอย่างมาก สำหรับผู้เริ่มต้นทดลองเขียนโค้ดต่อเซนเซอร์และฮาร์ดแวร์ IoT?",
+          choices: ["Arduino (อาร์ดูอิโน)", "Nvidia RTX (เอ็นวิเดีย)", "Intel Core i9 (อินเทล)", "Power Supply (พาวเวอร์ซัพพลาย)"],
+          answer: 0,
+        },
+        {
+          level: "hard",
+          category: "CLOUD COMPUTING",
+          question: "💀 [ข้อยาก] จุดเด่นสำคัญของการใช้งานระบบ 'Cloud Computing' คือข้อใด?",
+          choices: ["ประมวลผลและเก็บข้อมูลผ่านอินเทอร์เน็ตโดยไม่ต้องตั้งเซิร์ฟเวอร์เอง", "ช่วยให้คอมพิวเตอร์ทำงานได้โดยไม่ต้องใช้อินเทอร์เน็ต", "ป้องกันการเกิดความร้อนในเคสคอมพิวเตอร์ได้อย่างสมบูรณ์", "เพิ่มความเร็วการพิมพ์ของคีย์บอร์ดโดยอัตโนมัติ"],
+          answer: 0,
+        },
+        {
+          level: "hard",
+          category: "LOGIC GATES",
+          question: "💀 [ข้อยาก] ลอจิกเกตชนิด 'OR Gate' จะให้ผลลัพธ์เป็น 1 (True) เมื่อใด?",
+          choices: ["เมื่อมีสัญญาณขาเข้า (Input) อย่างน้อยหนึ่งตัวเป็น 1", "เมื่อสัญญาณขาเข้าทุกตัวเป็น 0 พร้อมกันทั้งหมด", "เมื่อสัญญาณขาเข้ามีค่าไม่เท่ากันเท่านั้น", "เมื่อสัญญาณขาเข้ามีความถี่สลับกันอย่างต่อเนื่อง"],
+          answer: 0,
+        },
+        {
+          level: "hard",
+          category: "LOGIC GATES",
+          question: "💀 [ข้อยาก] ลอจิกเกตชนิด 'NOT Gate' ทำหน้าที่อะไรกับสัญญาณขาเข้า?",
+          choices: ["กลับค่าสัญญาณขาเข้าจาก 0 เป็น 1 หรือจาก 1 เป็น 0", "เพิ่มระดับแรงดันสัญญาณขาเข้าเป็น 2 เท่าตัว", "รวมสัญญาณขาเข้า 2 สัญญาณเข้าด้วยกันเป็นสัญญาณเดียว", "หน่วงเวลาการเดินทางของสัญญาณให้ช้าลง 1 วินาที"],
+          answer: 0,
+        },
+        {
+          level: "hard",
+          category: "DATA STRUCTURE",
+          question: "💀 [ข้อยาก] โครงสร้างข้อมูลแบบ 'Stack' (สแตก) ใช้หลักการจัดการข้อมูลแบบใด?",
+          choices: ["LIFO (Last In, First Out — ข้อมูลที่ใส่เข้ามาทีหลัง จะออกมาก่อน)", "FIFO (First In, First Out — ข้อมูลที่เข้ามาก่อน จะออกไปก่อน)", "Random (สุ่มดึงข้อมูลออกมาทำงานโดยไม่สนใจลำดับ)", "Alphabetical (จัดเรียงและดึงข้อมูลตามลำดับตัวอักษร)"],
+          answer: 0,
+        },
+        {
+          level: "hard",
+          category: "OPERATING SYSTEM",
+          question: "💀 [ข้อยาก] สภาวะ 'Deadlock' ในระบบปฏิบัติการ หมายถึงเหตุการณ์ใด?",
+          choices: ["โปรเซสตั้งแต่ 2 ตัวขึ้นไป รอคอยทรัพยากรของกันและกันจนค้างทำอะไรต่อไม่ได้", "หน้าจอคอมพิวเตอร์เปลี่ยนเป็นสีฟ้าและทำการรีสตาร์ตเครื่องใหม่", "ฮาร์ดดิสก์หมุนด้วยความเร็วสูงเกินขีดจำกัดจนระบบหยุดทำงาน", "แป้นพิมพ์คีย์บอร์ดไม่ทำงานเนื่องจากโดนน้ำหกใส่"],
+          answer: 0,
+        },
+        {
+          level: "hard",
+          category: "NETWORK",
+          question: "💀 [ข้อยาก] หมายเลข IP Address แบบ IPv6 แตกต่างจาก IPv4 ในเรื่องใดเป็นหลัก?",
+          choices: ["IPv6 มีความยาว 128 บิต รองรับอุปกรณ์ได้มหาศาลกว่า IPv4 (32 บิต)", "IPv6 ใช้กับคอมพิวเตอร์ตั้งโต๊ะได้เท่านั้น แต่ IPv4 ใช้กับสมาร์ตโฟน", "IPv6 ไม่ต้องใช้สายแลนหรือ Wi-Fi ในการส่งข้อมูลผ่านระบบ", "IPv4 มีความปลอดภัยในการเข้ารหัสสูงกว่า IPv6 หลายเท่า"],
+          answer: 0,
+        },
+        {
+          level: "hard",
+          category: "ALGORITHM",
+          question: "💀 [ข้อยาก] สัญลักษณ์ 'Big O Notation' ในวิชาวิทยาการคำนวณ ใช้เพื่อวัดสิ่งใด?",
+          choices: ["วัดประสิทธิภาพความซับซ้อนของเวลา (Time) และหน่วยความจำ (Space) ของอัลกอริทึม", "วัดระดับความจุของแบตเตอรี่โน้ตบุ๊กขณะใช้งานโปรแกรมหนัก", "วัดความเร็วการรับส่งข้อมูลสูงสุดของสายแลนในระบบเครือข่าย", "วัดขนาดความกว้างและความยาวของหน้าจอคอมพิวเตอร์"],
+          answer: 0,
+        },
+        {
+          level: "hard",
+          category: "OPERATING SYSTEM",
+          question: "💀 [ข้อยาก] ส่วนประกอบที่เรียกว่า 'Kernel' ในระบบปฏิบัติการ มีหน้าที่สำคัญอย่างไร?",
+          choices: ["ส่วนแกนหลักของ OS ที่ทำหน้าที่ประสานงานระหว่างซอฟต์แวร์กับฮาร์ดแวร์", "ส่วนตกแต่งวอลเปเปอร์และธีมการแสดงผลหน้าจอของระบบ", "ส่วนตรวจจับและกำจัดไวรัสภายนอกที่เข้ามาทางแฟลชไดรฟ์", "ส่วนจัดการแท็บและการดาวน์โหลดไฟล์ของเว็บเบราว์เซอร์"],
+          answer: 0,
+        },
+        {
+          level: "hard",
+          category: "ALGORITHM",
+          question: "💀 [ข้อยาก] เงื่อนไขสำคัญที่สุดก่อนจะใช้อัลกอริทึม 'Binary Search' ค้นหาข้อมูลได้ คืออะไร?",
+          choices: ["ชุดข้อมูลนั้นจะต้องถูกจัดเรียงลำดับ (Sorted) มาก่อนแล้ว", "ข้อมูลทั้งหมดต้องเป็นตัวอักษรภาษาอังกฤษเท่านั้น", "ชุดข้อมูลจะต้องมีจำนวนรายการมากกว่า 1,000,000 รายการ", "เครื่องคอมพิวเตอร์ต้องทำการเชื่อมต่อกับอินเทอร์เน็ต"],
+          answer: 0,
+        },
+        {
+          level: "hard",
+          category: "DATABASE",
+          question: "💀 [ข้อยาก] คำสั่ง SQL ชนิด `JOIN` มีไว้ใช้ประโยชน์อะไร?",
+          choices: ["ดึงและรวมข้อมูลจาก 2 ตารางขึ้นไป โดยอาศัยคอลัมน์ที่มีความสัมพันธ์กัน", "ลบตารางข้อมูลและดัชนีทั้งหมดออกจากฐานข้อมูลพร้อมกัน", "สร้างตารางใหม่ขึ้นมารองรับข้อมูลพร้อมกัน 10 ตาราง", "เปลี่ยนรหัสผ่านสิทธิ์แอดมินของระบบฐานข้อมูล"],
+          answer: 0,
+        },
+        {
+          level: "hard",
+          category: "HARDWARE",
+          question: "💀 [ข้อยาก] ไมโครคอนโทรลเลอร์ (Microcontroller) แตกต่างจาก ไมโครโพรเซสเซอร์ (Microprocessor) อย่างไร?",
+          choices: ["ไมโครคอนโทรลเลอร์รวม CPU, RAM, ROM ไว้ในชิปเดียว / ไมโครโพรเซสเซอร์มีเฉพาะ CPU", "ไมโครคอนโทรลเลอร์ใช้กับคอมพิวเตอร์สเปกสูงเท่านั้น / ไมโครโพรเซสเซอร์ใช้กับมือถือ", "ไมโครคอนโทรลเลอร์ไม่ต้องใช้กระแสไฟฟ้าในการทำงาน / ไมโครโพรเซสเซอร์ต้องใช้ไฟสูง", "ไมโครคอนโทรลเลอร์ใช้ประมวลผลวิดีโอ 4K / ไมโครโพรเซสเซอร์ใช้พิมพ์เอกสาร"],
+          answer: 0,
+        },
+      ];
+
+      // ⚙️ ตัวแปรควบคุมเกม
+      const QUESTIONS_PER_GAME = 10;
+      let activeQuestions = [];
+      let currentQIndex = 0;
+      let currentQuestionObj = null;
+
+      window.score = 0;
+      let correctAnswers = 0;
+      let easyCorrect = 0;
+      let mediumCorrect = 0;
+      let hardCorrect = 0;
+      let combo = 0;
+      let maxCombo = 0;
+      let wrongStreak = 0;
+      let timerInterval = null;
+      let timeLeft = 15;
+      let currentQuestionMaxTime = 15;
+      let selectedChoiceIndex = null;
+
+      window.playerName = "ผู้เยี่ยมชม";
+      window.playerSchool = "บุคคลทั่วไป";
+      let userKey = "guest_user";
+
+      window.addEventListener("DOMContentLoaded", () => {
+        loadUserData();
+        checkAttemptStatus();
+      });
+
+      function openAdminAccess() {
+        document.getElementById("admin-pass-input").value = "";
+        document.getElementById("admin-error-msg").classList.add("hidden");
+        document.getElementById("admin-modal").classList.remove("hidden");
+        setTimeout(
+          () => document.getElementById("admin-pass-input").focus(),
+          100,
+        );
+      }
+
+      function closeAdminModal() {
+        document.getElementById("admin-modal").classList.add("hidden");
+      }
+
+      function submitAdminPassword(e) {
+        e.preventDefault();
+        const pass = document.getElementById("admin-pass-input").value;
+        if (pass === "CPE69231") {
+          window.location.href = "resetboard.html";
+        } else {
+          document.getElementById("admin-error-msg").classList.remove("hidden");
+          document.getElementById("admin-pass-input").value = "";
+          document.getElementById("admin-pass-input").focus();
+        }
+      }
+
+      function backToStartScreen() {
+        document.getElementById("result-screen").classList.add("hidden");
+        document.getElementById("quiz-screen").classList.add("hidden");
+        document.getElementById("start-screen").classList.remove("hidden");
+        checkAttemptStatus();
+      }
+
+      function loadUserData() {
+        const fname = localStorage.getItem("cpe_firstname");
+        const lname = localStorage.getItem("cpe_lastname");
+        const school = localStorage.getItem("cpe_school");
+
+        if (fname) {
+          window.playerName = `${fname} ${lname || ""}`.trim();
+          window.playerSchool = school || "ไม่ระบุสังกัด";
+          userKey = `user_${fname}_${lname || ""}`
+            .toLowerCase()
+            .replace(/\s+/g, "_");
+        }
+        document.getElementById("player-display-name").innerText =
+          `${window.playerName} (${window.playerSchool})`;
+      }
+
+      function checkAttemptStatus() {
+        const hasPlayed = localStorage.getItem(`cpe_quiz_played_${userKey}`);
+        const startBtn = document.getElementById("start-btn");
+        if (hasPlayed === "true") {
+          startBtn.disabled = true;
+          startBtn.className =
+            "flex-1 rounded-xl bg-slate-300 text-white font-bold py-3.5 px-5 cursor-not-allowed text-center";
+          startBtn.innerText = "🔒 คุณลงแข่งไปแล้ว";
+          document
+            .getElementById("already-played-msg")
+            .classList.remove("hidden");
+        } else {
+          startBtn.disabled = false;
+          startBtn.className =
+            "flex-1 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-3.5 px-5 transition-all shadow-md active:scale-95 text-center";
+          startBtn.innerText = "🚀 เริ่มเล่นเกมดวลจุดโทษ (10 ข้อสุ่ม)";
+          document.getElementById("already-played-msg").classList.add("hidden");
+        }
+      }
+
+      // 🎲 ฟังก์ชันสุ่มอาเรย์
+      function shuffleArray(array) {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
+      // 🎲 ฟังก์ชันสุ่มเตรียมคำถาม 10 ข้อและสลับตัวเลือก
+      function prepareQuestions() {
+        const easyPool = masterQuestionPool.filter((q) => q.level === "easy");
+        const mediumPool = masterQuestionPool.filter(
+          (q) => q.level === "medium",
+        );
+        const hardPool = masterQuestionPool.filter((q) => q.level === "hard");
+
+        // สุ่มดึงข้อสอบ: ง่าย 5 ข้อ, ปานกลาง 4 ข้อ, ยาก 1 ข้อ (รวม 10 ข้อ)
+        const selectedEasy = shuffleArray(easyPool).slice(0, 5);
+        const selectedMedium = shuffleArray(mediumPool).slice(0, 4);
+        const selectedHard = shuffleArray(hardPool).slice(0, 1);
+
+        const combined10 = [
+          ...selectedEasy,
+          ...selectedMedium,
+          ...selectedHard,
+        ];
+
+        // สลับช้อยส์ (Choices) ของแต่ละข้อแบบไดนามิก
+        activeQuestions = combined10.map((q) => {
+          const choicesWithFlag = q.choices.map((choiceText, idx) => ({
+            text: choiceText,
+            isCorrect: idx === q.answer,
+          }));
+
+          const shuffledChoices = shuffleArray(choicesWithFlag);
+          const correctIndex = shuffledChoices.findIndex((c) => c.isCorrect);
+
+          return {
+            category: q.category,
+            question: q.question,
+            choices: shuffledChoices.map((c) => c.text),
+            answer: correctIndex,
+            level: q.level,
+          };
+        });
+      }
+
+      function startQuizDirectly() {
+        const hasPlayed = localStorage.getItem(`cpe_quiz_played_${userKey}`);
+        if (hasPlayed === "true") {
+          alert("คุณได้ลงแข่งไปแล้ว 1 ครั้ง ไม่สามารถลงซ้ำได้ครับ");
+          return;
+        }
+
+        prepareQuestions();
+
+        currentQIndex = 0;
+        window.score = 0;
+        correctAnswers = 0;
+        easyCorrect = 0;
+        mediumCorrect = 0;
+        hardCorrect = 0;
+        combo = 0;
+        maxCombo = 0;
+        wrongStreak = 0;
+
+        document.getElementById("start-screen").classList.add("hidden");
+        document.getElementById("result-screen").classList.add("hidden");
+        document.getElementById("quiz-screen").classList.remove("hidden");
+
+        showQuestion();
+      }
+
+      function resetArenaUI(level) {
+        const roleBadge = document.getElementById("role-badge");
+        const ball = document.getElementById("arena-ball");
+        const keeper = document.getElementById("arena-keeper");
+        const kicker = document.getElementById("arena-kicker");
+        const goalPosts = document.getElementById("goal-posts");
+        const arenaContainer = document.getElementById("arena-container");
+        const overlay = document.getElementById("action-overlay");
+        const actionText = document.getElementById("action-text");
+
+        overlay.classList.add("hidden");
+        actionText.className = "";
+        arenaContainer.className =
+          "pitch-bg h-52 sm:h-60 rounded-2xl border-4 border-slate-900 shadow-2xl flex flex-col justify-between p-3.5 relative";
+        goalPosts.className =
+          "w-48 sm:w-56 h-20 border-t-[10px] border-x-[10px] border-white goal-net-mesh bg-white/10 rounded-t-lg relative flex items-center justify-center transition-all overflow-hidden";
+
+        ball.className =
+          "text-4xl sm:text-5xl transition-all drop-shadow-[0_10px_8px_rgba(0,0,0,0.5)]";
+        keeper.className =
+          "text-4xl sm:text-5xl transition-all duration-300 drop-shadow-[0_8px_6px_rgba(0,0,0,0.4)]";
+
+        kicker.classList.remove("hidden");
+        kicker.className =
+          "absolute bottom-2 left-3 sm:left-6 z-20 transition-transform flex items-center justify-center";
+        kicker.innerHTML = `<img src="Ronaldo.jpg" class="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-emerald-400 object-cover shadow-md" alt="Ronaldo Ready">`;
+
+        if (level === "easy") {
+          roleBadge.innerText = "🟢 EASY";
+          roleBadge.className =
+            "px-3 py-1 rounded-full text-xs font-black bg-emerald-600 text-white shadow-sm";
+        } else if (level === "medium") {
+          roleBadge.innerText = "🟡 MEDIUM";
+          roleBadge.className =
+            "px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-white shadow-sm";
+        } else {
+          roleBadge.innerText = "🔴 HARD";
+          roleBadge.className =
+            "px-3 py-1 rounded-full text-xs font-black bg-purple-600 text-white shadow-sm";
+        }
+        keeper.innerText = "🧍‍♂️";
+      }
+
+      function resetConfirmButton() {
+        selectedChoiceIndex = null;
+        const confirmBtn = document.getElementById("confirm-answer-btn");
+        confirmBtn.disabled = true;
+        confirmBtn.className =
+          "w-full mt-2 rounded-xl bg-slate-300 text-slate-500 font-bold py-3.5 px-6 transition-all text-center text-sm sm:text-base cursor-not-allowed";
+        confirmBtn.innerText = "🎯 เลือกคำตอบเพื่อยืนยัน";
+      }
+
+      function showQuestion() {
+        clearInterval(timerInterval);
+
+        currentQuestionObj = activeQuestions[currentQIndex];
+        const q = currentQuestionObj;
+
+        resetArenaUI(q.level);
+        resetConfirmButton();
+
+        document.getElementById("current-question-num").innerText =
+          currentQIndex + 1;
+        document.getElementById("current-score").innerText = window.score;
+        document.getElementById("question-category").innerText =
+          `${q.level.toUpperCase()} — ${q.category}`;
+        document.getElementById("question-text").innerText = q.question;
+
+        // ⏱️ เวลาตอบคำถาม: ง่าย 15s / ปานกลาง 17s / ยาก 30s
+        let baseTime = 15;
+        if (q.level === "medium") baseTime = 17;
+        if (q.level === "hard") baseTime = 30;
+
+        const isGoldenTime = wrongStreak >= 2;
+        currentQuestionMaxTime = isGoldenTime ? baseTime * 1.5 : baseTime;
+
+        const goldenBadge = document.getElementById("golden-badge");
+        if (isGoldenTime) {
+          goldenBadge.classList.remove("hidden");
+        } else {
+          goldenBadge.classList.add("hidden");
+        }
+
+        const comboBadge = document.getElementById("combo-badge");
+        if (combo > 1) {
+          comboBadge.innerText = `🔥 Combo x${combo}`;
+          comboBadge.classList.remove("hidden");
+        } else {
+          comboBadge.classList.add("hidden");
+        }
+
+        const container = document.getElementById("choices-container");
+        container.innerHTML = "";
+
+        q.choices.forEach((choice, index) => {
+          const btn = document.createElement("button");
+          btn.id = `choice-btn-${index}`;
+          btn.className =
+            "choice-btn w-full text-left p-3.5 sm:p-4 rounded-xl border border-orange-200/80 bg-white/90 hover:border-orange-500 font-medium text-sm sm:text-base flex items-center justify-between shadow-sm";
+          btn.innerHTML = `
+                    <span><strong class="text-orange-600 mr-2">${String.fromCharCode(65 + index)}.</strong> ${choice}</span>
+                    <span class="text-xs text-slate-400 hidden sm:inline">&rarr;</span>
+                `;
+          btn.onclick = () => selectChoice(index);
+          container.appendChild(btn);
+        });
+
+        timeLeft = currentQuestionMaxTime;
+        updateTimerBar();
+        timerInterval = setInterval(() => {
+          timeLeft -= 0.1;
+          updateTimerBar();
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            handleTimeout();
+          }
+        }, 100);
+      }
+
+      function selectChoice(index) {
+        selectedChoiceIndex = index;
+        const allBtns = document.querySelectorAll(".choice-btn");
+
+        allBtns.forEach((btn, idx) => {
+          if (idx === index) {
+            btn.classList.add("selected-choice");
+          } else {
+            btn.classList.remove("selected-choice");
+          }
+        });
+
+        const confirmBtn = document.getElementById("confirm-answer-btn");
+        confirmBtn.disabled = false;
+        confirmBtn.className =
+          "w-full mt-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-3.5 px-6 transition-all shadow-md active:scale-95 text-center text-sm sm:text-base cursor-pointer";
+        confirmBtn.innerText = `🚀 ยืนยันตอบข้อ ${String.fromCharCode(65 + index)}`;
+      }
+
+      function confirmAnswer() {
+        if (selectedChoiceIndex === null) return;
+
+        const confirmBtn = document.getElementById("confirm-answer-btn");
+        confirmBtn.disabled = true;
+        confirmBtn.className =
+          "w-full mt-2 rounded-xl bg-slate-400 text-white font-bold py-3.5 px-6 text-center text-sm sm:text-base cursor-not-allowed opacity-80";
+        confirmBtn.innerText = "⏳ กำลังประมวลผล...";
+
+        const selectedBtn = document.getElementById(
+          `choice-btn-${selectedChoiceIndex}`,
+        );
+        checkAnswer(selectedChoiceIndex, selectedBtn);
+      }
+
+      function updateTimerBar() {
+        const percentage = (timeLeft / currentQuestionMaxTime) * 100;
+        const bar = document.getElementById("timer-bar");
+        bar.style.width = `${Math.max(0, percentage)}%`;
+
+        if (wrongStreak >= 2) {
+          bar.className =
+            "bg-amber-400 h-full transition-all duration-100 ease-linear shadow-[0_0_12px_#f59e0b]";
+        } else if (percentage < 30) {
+          bar.className =
+            "bg-red-600 h-full transition-all duration-100 ease-linear";
+        } else {
+          bar.className =
+            "bg-orange-500 h-full transition-all duration-100 ease-linear";
+        }
+      }
+
+      function playFootballAnimation(isCorrect) {
+        const ball = document.getElementById("arena-ball");
+        const keeper = document.getElementById("arena-keeper");
+        const kicker = document.getElementById("arena-kicker");
+        const goalPosts = document.getElementById("goal-posts");
+        const arenaContainer = document.getElementById("arena-container");
+        const overlay = document.getElementById("action-overlay");
+        const actionText = document.getElementById("action-text");
+
+        overlay.classList.remove("hidden");
+
+        const dir = Math.floor(Math.random() * 2);
+
+        kicker.classList.add("anim-kicker-kick");
+
+        setTimeout(() => {
+          if (isCorrect) {
+            if (dir === 0) {
+              ball.classList.add("anim-ball-goal-left");
+              keeper.classList.add("anim-keeper-dive-right");
+            } else {
+              ball.classList.add("anim-ball-goal-right");
+              keeper.classList.add("anim-keeper-dive-left");
+            }
+
+            keeper.innerText = "😱";
+            goalPosts.classList.add("anim-net-bulge");
+            arenaContainer.classList.add("anim-arena-shake");
+
+            setTimeout(() => {
+              kicker.innerHTML = `<img src="suuuuu.jpg" class="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-amber-400 object-cover shadow-2xl animate-bounce" alt="SIUUU">`;
+            }, 300);
+
+            actionText.innerText = "SIUUUUUUU!";
+            actionText.className =
+              "text-3xl sm:text-5xl font-black text-amber-300 drop-shadow-[0_6px_12px_rgba(0,0,0,0.9)] tracking-wider animate-bounce anim-banner-pop";
+          } else {
+            if (dir === 0) {
+              ball.classList.add("anim-ball-miss-left");
+              keeper.classList.add("anim-keeper-dive-left");
+            } else {
+              ball.classList.add("anim-ball-miss-right");
+              keeper.classList.add("anim-keeper-dive-right");
+            }
+            keeper.innerText = "😆";
+
+            setTimeout(() => {
+              kicker.innerHTML = `<img src="sigma.jpg" class="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-rose-400 object-cover shadow-2xl animate-bounce" alt="Sigma Ronaldo">`;
+            }, 200);
+
+            actionText.innerText = "MISSED!";
+            actionText.className =
+              "text-3xl sm:text-5xl font-black text-rose-400 drop-shadow-[0_6px_12px_rgba(0,0,0,0.9)] tracking-wider animate-bounce anim-banner-pop";
+          }
+        }, 180);
+      }
+
+      function showTransitionModal(titleText, badgeText, isHard = false) {
+        document.getElementById("transition-title").innerText = titleText;
+        const badgeEl = document.getElementById("transition-level-badge");
+        const gifBg = document.getElementById("transition-gif-bg");
+        const cardEl = document.getElementById("transition-card");
+
+        badgeEl.innerText = badgeText;
+
+        if (isHard) {
+          // แสดง GIF แบบโปร่งแสง และเปลี่ยนธีมขอบเป็นสีม่วงเข้ม
+          gifBg.classList.remove("hidden");
+          cardEl.className =
+            "bg-white border-4 border-purple-600 p-6 sm:p-8 rounded-2xl text-center shadow-2xl relative overflow-hidden max-w-sm w-full animate-pop-in";
+          badgeEl.className =
+            "inline-block bg-purple-600 text-white text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm";
+        } else {
+          // ซ่อน GIF และใช้ธีมขอบสีส้มตามปกติ
+          gifBg.classList.add("hidden");
+          cardEl.className =
+            "bg-white border-4 border-orange-500 p-6 sm:p-8 rounded-2xl text-center shadow-2xl relative overflow-hidden max-w-sm w-full animate-pop-in";
+          badgeEl.className =
+            "inline-block bg-orange-500 text-white text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm";
+        }
+
+        document.getElementById("transition-modal").classList.remove("hidden");
+      }
+
+      function closeTransitionModal() {
+        document.getElementById("transition-modal").classList.add("hidden");
+        showQuestion();
+      }
+
+      function nextQuestion() {
+        currentQIndex++;
+        if (currentQIndex < activeQuestions.length) {
+          // 🔔 ป๊อปอัปเตือนก่อนข้อ 6 (เริ่มระดับปานกลาง)
+          if (currentQIndex === 5) {
+            showTransitionModal(
+              "คำถามหยั่งเชิง ว่าคุณคือวิศวะคอมหรือไม่",
+              "🟡 ระดับปานกลาง",
+              false,
+            );
+          }
+          // 🔔 ป๊อปอัปเตือนก่อนข้อ 10 (เริ่มระดับข้อยาก) -> เปิด GIF ฉากหลังรางๆ
+          else if (currentQIndex === 9) {
+            showTransitionModal(
+              "คำถามรุกฆาต คุณคือวิศวะคอม",
+              "🔴 ระดับข้อยาก (รุกฆาต)",
+              true,
+            );
+          } else {
+            showQuestion();
+          }
+        } else {
+          endQuiz();
+        }
+      }
+
+      function checkAnswer(selectedIndex, btnElement) {
+        clearInterval(timerInterval);
+        const q = currentQuestionObj;
+        const allBtns = document.querySelectorAll(".choice-btn");
+
+        allBtns.forEach((b) => (b.disabled = true));
+
+        const isCorrect = selectedIndex === q.answer;
+
+        if (isCorrect) {
+          if (btnElement) btnElement.classList.add("correct-anim");
+          combo++;
+          wrongStreak = 0;
+          if (combo > maxCombo) maxCombo = combo;
+
+          correctAnswers++;
+          if (q.level === "easy") easyCorrect++;
+          if (q.level === "medium") mediumCorrect++;
+          if (q.level === "hard") hardCorrect++;
+
+          const speedBonus = Math.floor(
+            (timeLeft / currentQuestionMaxTime) * 50,
+          );
+          const comboBonus = (combo - 1) * 20;
+
+          let baseScore = 100;
+          if (q.level === "medium") baseScore = 120;
+          if (q.level === "hard") baseScore = 150;
+
+          const earned = baseScore + speedBonus + comboBonus;
+
+          window.score += earned;
+        } else {
+          if (btnElement) btnElement.classList.add("wrong-anim");
+          allBtns[q.answer].classList.add("correct-anim");
+          combo = 0;
+          wrongStreak++;
+        }
+
+        playFootballAnimation(isCorrect);
+
+        setTimeout(() => {
+          nextQuestion();
+        }, 1500);
+      }
+
+      function handleTimeout() {
+        combo = 0;
+        wrongStreak++;
+        const q = currentQuestionObj;
+        const allBtns = document.querySelectorAll(".choice-btn");
+
+        allBtns.forEach((b) => (b.disabled = true));
+        allBtns[q.answer].classList.add("correct-anim");
+
+        const confirmBtn = document.getElementById("confirm-answer-btn");
+        confirmBtn.disabled = true;
+        confirmBtn.className =
+          "w-full mt-2 rounded-xl bg-slate-300 text-slate-500 font-bold py-3.5 px-6 text-center text-sm sm:text-base cursor-not-allowed";
+        confirmBtn.innerText = "⏰ หมดเวลาตอบ!";
+
+        playFootballAnimation(false);
+
+        setTimeout(() => {
+          nextQuestion();
+        }, 1500);
+      }
+
+      async function endQuiz() {
+        localStorage.setItem(`cpe_quiz_played_${userKey}`, "true");
+
+        document.getElementById("quiz-screen").classList.add("hidden");
+
+        let rank = "C-RANK";
+        let desc = "พยายามอีกนิด! สายคอมฯ รอคุณอยู่";
+        if (window.score >= 900) {
+          rank = "S-RANK";
+          desc = "🏆 สุดยอด! ว่าที่เทพวิศวกรคอมพิวเตอร์ตัวจริง!";
+        } else if (window.score >= 600) {
+          rank = "A-RANK";
+          desc = "🌟 ยอดเยี่ยม! ความรู้พื้นฐานแน่นปึ้ก";
+        } else if (window.score >= 350) {
+          rank = "B-RANK";
+          desc = "👍 ดีมาก! มีแววรุ่งในสายงานเทคโนโลยี";
+        }
+
+        const myRank = await window.saveToLeaderboard(window.score, {
+          correctTotal: correctAnswers,
+          easyCorrect: easyCorrect,
+          mediumCorrect: mediumCorrect,
+          hardCorrect: hardCorrect,
+        });
+
+        let rewardText = "ไม่ได้รับของรางวัล";
+        if (myRank >= 1 && myRank <= 10) {
+          rewardText = "ติดต่อสตาฟ";
+        } else if (myRank >= 11 && myRank <= 100) {
+          rewardText = "ติดต่อสตาฟ";
+        }
+
+        const resultData = {
+          score: window.score,
+          correctAnswers: correctAnswers,
+          maxCombo: maxCombo,
+          myRank: myRank,
+          rankBadge: rank,
+          rankDesc: desc,
+          rewardText: rewardText,
+        };
+        localStorage.setItem(
+          `cpe_quiz_result_${userKey}`,
+          JSON.stringify(resultData),
+        );
+
+        displaySavedResult(resultData);
+        await window.renderLeaderboard();
+
+        if (correctAnswers >= 8) {
+          triggerVictoryEffects();
+        } else {
+          document.getElementById("result-screen").classList.remove("hidden");
+        }
+      }
+
+      function triggerVictoryEffects() {
+        document.getElementById("victory-score-num").innerText = correctAnswers;
+        document.getElementById("victory-modal").classList.remove("hidden");
+
+        const duration = 3 * 1000;
+        const end = Date.now() + duration;
+
+        (function frame() {
+          confetti({
+            particleCount: 5,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+          });
+          confetti({
+            particleCount: 5,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+          });
+          if (Date.now() < end) requestAnimationFrame(frame);
+        })();
+      }
+
+      function closeVictoryModal() {
+        document.getElementById("victory-modal").classList.add("hidden");
+        document.getElementById("result-screen").classList.remove("hidden");
+      }
+
+      function displaySavedResult(data) {
+        if (!data) return;
+        document.getElementById("final-score").innerText = Number(
+          data.score,
+        ).toLocaleString();
+        document.getElementById("final-correct").innerText =
+          `${data.correctAnswers}/10`;
+        document.getElementById("final-max-combo").innerText =
+          `${data.maxCombo}x`;
+
+        document.getElementById("user-rank-display").innerText =
+          `อันดับที่ ${data.myRank}`;
+        document.getElementById("user-score-display").innerText = Number(
+          data.score,
+        ).toLocaleString();
+        document.getElementById("user-reward-display").innerText =
+          data.rewardText;
+
+        document.getElementById("rank-badge").innerText = data.rankBadge;
+        document.getElementById("rank-description").innerText = data.rankDesc;
+      }
+
+      async function showLeaderboardOnly() {
+        document.getElementById("start-screen").classList.add("hidden");
+        document.getElementById("result-screen").classList.remove("hidden");
+
+        const savedResult = localStorage.getItem(`cpe_quiz_result_${userKey}`);
+        if (savedResult) {
+          displaySavedResult(JSON.parse(savedResult));
+        } else {
+          document.getElementById("final-score").innerText = "0";
+          document.getElementById("final-correct").innerText = "0/10";
+          document.getElementById("final-max-combo").innerText = "0x";
+
+          document.getElementById("user-rank-display").innerText =
+            "ยังไม่ได้ทดสอบ";
+          document.getElementById("user-score-display").innerText = "0";
+          document.getElementById("user-reward-display").innerText = "-";
+
+          document.getElementById("rank-badge").innerText = "N/A";
+          document.getElementById("rank-description").innerText =
+            "ยังไม่มีผลการทดสอบ";
+        }
+
+        await window.renderLeaderboard();
+      }
+    </script>
+  </body>
+</html>
