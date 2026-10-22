@@ -152,7 +152,7 @@
       </nav>
     </header>
 
-    <!-- 🌟 คอนเทนต์ส่วนกลาง (การ์ดนาฬิกา + โบรชัวร์ + ปุ่มแอ็กชัน) -->
+    <!-- 🌟 คอนเทนต์ส่วนกลาง (การ์ดนาฬิกา + ปุ่มแอ็กชัน + โบรชัวร์) -->
     <div class="relative z-10 flex-1 flex flex-col justify-center items-center px-3.5 py-2 sm:py-6 max-w-xl mx-auto w-full space-y-3.5 sm:space-y-6">
       
       <!-- 🕒 การ์ดนาฬิกา -->
@@ -224,37 +224,7 @@
         </h1>
       </div>
 
-      <!-- 🖼️ กรอบสี่เหลี่ยมใส่รูปโบรชัวร์ (เลื่อนอ่านได้ + แตะขยายซูม) -->
-      <div class="w-full bg-white/95 backdrop-blur-xl border-2 border-orange-400 rounded-3xl p-3 sm:p-4 shadow-lg relative overflow-hidden">
-        <div class="flex items-center justify-between border-b border-orange-100 pb-2 mb-2.5">
-          <div class="flex items-center gap-2">
-            <span class="text-lg sm:text-xl">🖼️</span>
-            <h2 class="text-xs sm:text-sm font-black text-slate-800">โบรชัวร์แนะนำสาขาวิชา</h2>
-          </div>
-          <button
-            onclick="openImageModal()"
-            class="text-[10px] sm:text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 px-3 py-1 rounded-full shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
-          >
-            <span>🔍</span> แตะดูภาพขยาย/ซูม
-          </button>
-        </div>
-
-        <!-- พื้นที่แสดงรูปภาพโบรชัวร์แบบเลื่อน Scroll -->
-        <div class="max-h-[380px] sm:max-h-[450px] overflow-y-auto no-scrollbar rounded-2xl border border-slate-200/80 shadow-inner bg-slate-50 relative group cursor-pointer" onclick="openImageModal()">
-          <img
-            id="brochure-preview-img"
-            src="สไลด์1.JPG"
-            onerror="this.onerror=null; if(this.src.includes('สไลด์1.JPG')){ this.src='Moudeng.jpg'; } else { this.src='image/Moudeng.jpg'; }"
-            alt="โบรชัวร์แนะนำสาขาวิชาวิศวกรรมคอมพิวเตอร์"
-            class="w-full h-auto block rounded-2xl"
-          />
-          <div class="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-            <span class="bg-white/90 text-orange-600 font-bold text-xs px-3 py-1.5 rounded-full shadow-lg border border-orange-200">🔍 คลิกเพื่อซูมขยาย</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 🚀 ปุ่มคำสั่งหลัก -->
+      <!-- 🚀 ปุ่มคำสั่งหลัก (ย้ายขึ้นมาไว้ด้านบน) -->
       <div class="w-full space-y-2 sm:space-y-3 pt-0.5">
         <!-- คู่ปุ่มบน: คำแนะนำสาขา และ บุคลากร -->
         <div class="grid grid-cols-2 gap-2">
@@ -293,6 +263,36 @@
           </svg>
           <span>⚽ เริ่มทำแบบทดสอบ (Quiz)</span>
         </a>
+      </div>
+
+      <!-- 🖼️ กรอบสี่เหลี่ยมใส่รูปโบรชัวร์ (ย้ายลงมาไว้ด้านล่าง) -->
+      <div class="w-full bg-white/95 backdrop-blur-xl border-2 border-orange-400 rounded-3xl p-3 sm:p-4 shadow-lg relative overflow-hidden">
+        <div class="flex items-center justify-between border-b border-orange-100 pb-2 mb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="text-lg sm:text-xl">🖼️</span>
+            <h2 class="text-xs sm:text-sm font-black text-slate-800">โบรชัวร์แนะนำสาขาวิชา</h2>
+          </div>
+          <button
+            onclick="openImageModal()"
+            class="text-[10px] sm:text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 px-3 py-1 rounded-full shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+          >
+            <span>🔍</span> แตะดูภาพขยาย/ซูม
+          </button>
+        </div>
+
+        <!-- พื้นที่แสดงรูปภาพโบรชัวร์แบบเลื่อน Scroll -->
+        <div class="max-h-[380px] sm:max-h-[450px] overflow-y-auto no-scrollbar rounded-2xl border border-slate-200/80 shadow-inner bg-slate-50 relative group cursor-pointer" onclick="openImageModal()">
+          <img
+            id="brochure-preview-img"
+            src="สไลด์1.JPG"
+            onerror="this.onerror=null; if(this.src.includes('สไลด์1.JPG')){ this.src='Moudeng.jpg'; } else { this.src='image/Moudeng.jpg'; }"
+            alt="โบรชัวร์แนะนำสาขาวิชาวิศวกรรมคอมพิวเตอร์"
+            class="w-full h-auto block rounded-2xl"
+          />
+          <div class="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+            <span class="bg-white/90 text-orange-600 font-bold text-xs px-3 py-1.5 rounded-full shadow-lg border border-orange-200">🔍 คลิกเพื่อซูมขยาย</span>
+          </div>
+        </div>
       </div>
 
     </div>
